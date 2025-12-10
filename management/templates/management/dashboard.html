@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Monthly Summary{% endblock %}
+
+{% block content %}
+    <h2>➡️ {{ current_month }} Monthly Summary</h2>
+
+    <p>Total Canteens: <b>{{ total_canteens }}</b> | Total Staff: <b>{{ total_staff }}</b></p>
+    <hr>
+
+    <h3>💰 Overall Expenses and Payments Summary</h3>
+    <table border="1" cellpadding="10" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>✅ Total Monthly Expense (Grocery, Gas, Other):</td>
+                <td>₹ {{ monthly_expenses_sum|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td>💸 Total Monthly Salary/Advance Paid:</td>
+                <td>₹ {{ monthly_payments_sum|floatformat:2 }}</td>
+            </tr>
+            <tr>
+                <td>🚨 Total Outstanding Advance (Overall):</td>
+                <td>₹ {{ total_advance_paid|floatformat:2 }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <br>
+    <p>*** You can now add some **Expense** and **Salary Payment (Advance)** data via the Admin Panel to make this reporting work. ***</p>
+
+    <hr>
+    <h3>📍 Canteen Wise Reports ({{ all_canteens|length }} Total)</h3>
+
+    <div style="display: flex; gap: 20px;">
+        {% for canteen in all_canteens %}
+            <a href="{% url 'canteen_report' canteen.id %}" style="padding: 10px; border: 1px solid #ccc; text-decoration: none; background-color: #f9f9f9;">
+                {{ canteen.name }} Report →
+            </a>
+        {% endfor %}
+    </div>
+
+    <hr>
+    <h3>👨‍🍳 Staff and Payroll</h3>
+    <a href="{% url 'payroll_summary' %}" style="padding: 10px; border: 1px solid #cce; text-decoration: none; background-color: #eef;">
+        Payroll & Advance Summary →
+    </a>
+
+{% endblock content %}

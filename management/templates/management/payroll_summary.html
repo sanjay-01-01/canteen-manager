@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Payroll Summary{% endblock %}
+
+{% block content %}
+    <h2>💵 Payroll Summary for {{ current_month }}</h2>
+    <p>This report summarizes monthly salary, total advances outstanding, and leaves taken this month.</p>
+    <hr>
+
+    {% if payroll_data %}
+    <table border="1" cellpadding="10" cellspacing="0" width="100%">
+        <thead>
+            <tr>
+                <th>Staff Name</th>
+                <th>Canteen</th>
+                <th>Monthly Salary</th>
+                <th>Leaves This Month</th>
+                <th>Total Advance Due</th>
+                <th>Paid This Month</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for staff_info in payroll_data %}
+            <tr>
+                <td>{{ staff_info.staff.name }}</td>
+                <td>{{ staff_info.canteen_name }}</td>
+                <td>₹ {{ staff_info.monthly_salary|floatformat:2 }}</td>
+                <td>{{ staff_info.leaves_this_month }} days</td>
+                <td>₹ {{ staff_info.total_advance_paid|floatformat:2 }}</td>
+                <td>₹ {{ staff_info.paid_this_month|floatformat:2 }}</td>
+                <td>
+                    {% if staff_info.total_advance_paid > 0 %}
+                        <b style="color: orange;">ADVANCE DUE</b>
+                    {% else %}
+                        <b style="color: green;">Clear</b>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p>No staff members found in the system. Please add staff via the Admin Panel.</p>
+    {% endif %}
+
+    <br><a href="{% url 'home_dashboard' %}">← Back to Dashboard</a>
+{% endblock content %}
