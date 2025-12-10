@@ -61,6 +61,11 @@ class Staff(models.Model):
     joining_date = models.DateField(null=True, blank=True, verbose_name="Joining Date")
     monthly_salary = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Monthly Salary")
 
+    # --- नई फोटो फील्ड्स ---
+    photo = models.ImageField(upload_to='staff_photos/', null=True, blank=True, verbose_name="Staff Photo")
+    aadhar_card = models.ImageField(upload_to='staff_aadhar/', null=True, blank=True, verbose_name="Aadhar Card Photo")
+    # ----------------------
+
     def __str__(self):
         return f"{self.name} ({self.role}) - {self.canteen.name if self.canteen else 'Unassigned'}"
 

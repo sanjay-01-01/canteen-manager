@@ -3,64 +3,75 @@
 {% block title %}Monthly Summary{% endblock %}
 
 {% block content %}
-    <h2>➡️ {{ current_month }} Monthly Summary</h2>
+<h2>➡️ {{ current_month }} Monthly Summary</h2>
 
-    <p>Total Canteens: <b>{{ total_canteens }}</b> | Total Staff: <b>{{ total_staff }}</b></p>
-    <hr>
+<p>Total Canteens: <b>{{ total_canteens }}</b> | Total Staff: <b>{{ total_staff }}</b></p>
+<hr>
 
-    <h3>💰 Overall Expenses and Payments Summary</h3>
-    <table border="1" cellpadding="10" cellspacing="0">
-        <thead>
-            <tr>
-                <th>Description</th>
-                <th>Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>✅ Total Monthly Expense (Grocery, Gas, Other):</td>
-                <td>₹ {{ monthly_expenses_sum|floatformat:2 }}</td>
-            </tr>
-            <tr>
-                <td>💸 Total Monthly Salary/Advance Paid:</td>
-                <td>₹ {{ monthly_payments_sum|floatformat:2 }}</td>
-            </tr>
-            <tr>
-                <td>🚨 Total Outstanding Advance (Overall):</td>
-                <td>₹ {{ total_advance_paid|floatformat:2 }}</td>
-            </tr>
-        </tbody>
-    </table>
+<h3>💰 Overall Expenses and Payments Summary</h3>
+<table border="1" cellpadding="10" cellspacing="0">
+    <thead>
+        <tr>
+            <th>Description</th>
+            <th>Amount</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>✅ Total Monthly Expense (Grocery, Gas, Other):</td>
+            <td>₹ {{ monthly_expenses_sum|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td>💸 Total Monthly Salary/Advance Paid:</td>
+            <td>₹ {{ monthly_payments_sum|floatformat:2 }}</td>
+        </tr>
+        <tr>
+            <td>🚨 Total Outstanding Advance (Overall):</td>
+            <td>₹ {{ total_advance_paid|floatformat:2 }}</td>
+        </tr>
+    </tbody>
+</table>
 
-    <br>
-    <p>*** You can now add some **Expense** and **Salary Payment (Advance)** data via the Admin Panel to make this reporting work. ***</p>
+<br>
+<p>*** You can now add some **Expense** and **Salary Payment (Advance)** data via the Admin Panel to make this reporting
+    work. ***</p>
 
-    <hr>
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-white">
-            <h5 class="mb-0">📍 Canteen Wise Reports ({{ total_canteens }} Total)</h5>
-        </div>
-        <div class="card-body">
-            <div class="d-flex flex-wrap gap-2">
-                {% for canteen in all_canteens %}
-                    <a href="{% url 'canteen_summary_report' canteen.id %}" class="btn btn-outline-primary">
-                        {{ canteen.name }} Report →
-                    </a>
-                {% endfor %}
-            </div>
+<hr>
+<div class="card mb-4 shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">📍 Canteen Wise Reports ({{ total_canteens }} Total)</h5>
+    </div>
+    <div class="card-body">
+        <div class="d-flex flex-wrap gap-2">
+            {% for canteen in all_canteens %}
+            <a href="{% url 'canteen_summary_report' canteen.id %}" class="btn btn-outline-primary">
+                {{ canteen.name }} Report →
+            </a>
+            {% endfor %}
         </div>
     </div>
-    <hr>
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header bg-white">
-            <h5 class="mb-0">👨‍🍳 Staff and Payroll ({{ total_staff }} Staff Members)</h5>
-        </div>
-        <div class="card-body">
-            <div class="d-flex flex-wrap gap-2">
-                <a href="{% url 'payroll_summary' %}" class="btn btn-outline-primary">
-                    Payroll & Advance Summary →
-                </a>
-            </div>
+</div>
+<hr>
+<div class="card mb-4 shadow-sm">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">👨‍🍳 Staff and Payroll ({{ total_staff }} Staff Members)</h5>
+    </div>
+    <div class="card-body">
+        <div class="d-flex flex-wrap gap-2">
+
+            <a href="{% url 'payroll_summary' %}" class="btn btn-outline-primary shadow-sm">
+                📊 Payroll & Advance Summary →
+            </a>
+
+            <a href="{% url 'staff_list' %}" class="btn btn-outline-primary shadow-sm">
+                👥 Staff Details (Khata Book) →
+            </a>
+
+            <a href="{% url 'admin:management_staff_changelist' %}" class="btn btn-outline-dark shadow-sm">
+                ⚙️ Manage Staff (Add/Edit) →
+            </a>
+
         </div>
     </div>
+</div>
 {% endblock content %}

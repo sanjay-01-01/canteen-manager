@@ -20,7 +20,7 @@
         <div class="card-header bg-primary text-white py-3">
             <h5 class="mb-0">💰 Monthly Salary & Advance Status</h5>
         </div>
-        
+
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover table-striped align-middle mb-0">
@@ -28,7 +28,8 @@
                         <tr>
                             <th class="py-3 ps-4">Staff Name & Role</th>
                             <th class="py-3">Canteen</th>
-                            <th class="py-3">Joining Date</th> <th class="py-3">Monthly Salary</th>
+                            <th class="py-3">Joining Date</th>
+                            <th class="py-3">Monthly Salary</th>
                             <th class="py-3 text-center">Leaves</th>
                             <th class="py-3 text-danger">Advance Due</th>
                             <th class="py-3 text-success">Paid This Month</th>
@@ -39,7 +40,10 @@
                         {% for item in payroll_data %}
                         <tr>
                             <td class="ps-4">
-                                <div class="fw-bold">{{ item.staff.name }}</div>
+                                <a href="{% url 'staff_profile' item.staff.id %}"
+                                    class="text-decoration-none text-dark">
+                                    <div class="fw-bold link-primary">{{ item.staff.name }}</div>
+                                </a>
                                 <small class="text-muted">{{ item.staff.role }}</small>
                             </td>
 
@@ -51,9 +55,9 @@
 
                             <td>
                                 {% if item.staff.joining_date %}
-                                    {{ item.staff.joining_date|date:"d M, Y" }}
+                                {{ item.staff.joining_date|date:"d M, Y" }}
                                 {% else %}
-                                    <span class="text-muted">-</span>
+                                <span class="text-muted">-</span>
                                 {% endif %}
                             </td>
 
@@ -61,17 +65,17 @@
 
                             <td class="text-center">
                                 {% if item.leaves_this_month > 0 %}
-                                    <span class="badge bg-warning text-dark">{{ item.leaves_this_month }} Days</span>
+                                <span class="badge bg-warning text-dark">{{ item.leaves_this_month }} Days</span>
                                 {% else %}
-                                    <span class="text-muted">-</span>
+                                <span class="text-muted">-</span>
                                 {% endif %}
                             </td>
 
                             <td class="fw-bold text-danger">
                                 {% if item.total_advance_paid > 0 %}
-                                    ₹ {{ item.total_advance_paid|floatformat:0 }}
+                                ₹ {{ item.total_advance_paid|floatformat:0 }}
                                 {% else %}
-                                    <span class="text-muted">-</span>
+                                <span class="text-muted">-</span>
                                 {% endif %}
                             </td>
 
@@ -81,9 +85,9 @@
 
                             <td class="text-center">
                                 {% if item.total_advance_paid > 0 %}
-                                    <span class="badge bg-danger">Advance Pending</span>
+                                <span class="badge bg-danger">Advance Pending</span>
                                 {% else %}
-                                    <span class="badge bg-success">Clear</span>
+                                <span class="badge bg-success">Clear</span>
                                 {% endif %}
                             </td>
                         </tr>

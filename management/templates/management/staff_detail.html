@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Staff Details - {{ staff.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="bg-primary p-4 text-white text-center" style="background: linear-gradient(135deg, #0d6efd, #0dcaf0);">
+                    <h3 class="fw-bold mb-0">EMPLOYEE PROFILE</h3>
+                    <p class="mb-0 opacity-75">Canteen Management System</p>
+                </div>
+
+                <div class="card-body p-5">
+                    <div class="row">
+                        <div class="col-md-5 text-center border-end">
+                            <div class="mb-3 position-relative d-inline-block">
+                                {% if staff.photo %}
+                                    <img src="{{ staff.photo.url }}" class="rounded-circle shadow border border-5 border-white" style="width: 180px; height: 180px; object-fit: cover; margin-top: -60px;">
+                                {% else %}
+                                    <div class="rounded-circle bg-light d-flex justify-content-center align-items-center shadow border border-5 border-white mx-auto" style="width: 180px; height: 180px; font-size: 4rem; margin-top: -60px;">
+                                        👤
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <h2 class="fw-bold text-dark mt-2">{{ staff.name }}</h2>
+                            <span class="badge bg-dark px-3 py-2 rounded-pill mb-3">{{ staff.role }}</span>
+                            
+                            <div class="d-grid gap-2 mt-4">
+                                <a href="{% url 'staff_profile' staff.id %}" class="btn btn-outline-primary fw-bold">
+                                    📒 View Khata Book
+                                </a>
+                                <a href="{% url 'staff_list' %}" class="btn btn-light text-muted">
+                                    ← Back to List
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="col-md-7 ps-md-5 pt-3 pt-md-0">
+                            <h5 class="text-muted text-uppercase fw-bold mb-4 border-bottom pb-2">Personal Information</h5>
+                            
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold">PHONE NUMBER</label>
+                                <p class="fs-5 fw-bold text-dark">{{ staff.phone }}</p>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold">JOINING DATE</label>
+                                <p class="fs-5 text-dark">
+                                    {% if staff.joining_date %}
+                                        {{ staff.joining_date|date:"d F, Y" }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </p>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold">MONTHLY SALARY</label>
+                                <p class="fs-4 fw-bold text-success">₹ {{ staff.monthly_salary|floatformat:0|intcomma }}</p>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="text-muted small fw-bold">CANTEEN ASSIGNED</label>
+                                <p class="fs-5 text-dark">
+                                    {% if staff.canteen %}
+                                        🏢 {{ staff.canteen.name }}
+                                    {% else %}
+                                        <span class="text-danger">Not Assigned</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+
+                            <div class="mt-4 p-3 bg-light rounded border">
+                                <label class="text-muted small fw-bold mb-2">DOCUMENTS</label>
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <span>Aadhar Card</span>
+                                    {% if staff.aadhar_card %}
+                                        <a href="{{ staff.aadhar_card.url }}" target="_blank" class="btn btn-sm btn-primary">View Document</a>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Pending</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

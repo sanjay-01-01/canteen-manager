@@ -2,6 +2,7 @@
 
 from django.contrib import admin
 from .models import Canteen, Staff, StaffLeave, Expense, SalaryPayment, DailyEntry 
+from django.utils.html import format_html # फोटो दिखाने के लिए जरूरी
 
 # 1. Canteen Admin
 class CanteenAdmin(admin.ModelAdmin):
@@ -49,11 +50,23 @@ class ExpenseAdmin(admin.ModelAdmin):
     list_filter = ('date', 'category', 'payment_mode', 'canteen')
     search_fields = ('description',)
 
+# management/admin.py
+
+
+
 class StaffAdmin(admin.ModelAdmin):
-    list_display = ('name', 'role', 'canteen', 'phone', 'joining_date', 'monthly_salary')
+    # लिस्ट में फोटो भी दिखाएं
+    list_display = ('photo_preview', 'name', 'role', 'canteen', 'phone', 'joining_date')
     search_fields = ('name', 'phone')
     list_filter = ('canteen', 'role')
 
+    # फोटो का छोटा प्रीव्यू बनाने का फंक्शन
+    def photo_preview(self, obj):
+        if obj.photo:
+            return format_html('<img src="{}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;" />', obj.photo.url)
+        return "No Photo"
+    
+    photo_preview.short_description = "Photo"
 
 admin.site.register(Staff, StaffAdmin)
 

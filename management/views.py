@@ -7,6 +7,10 @@ from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 from .models import Canteen, Expense, Staff, SalaryPayment, StaffLeave
 
+from django.db.models.functions import TruncMonth
+from dateutil.relativedelta import relativedelta
+import calendar
+
 # ==========================================
 # 1. डैशबोर्ड (Home Dashboard)
 # ==========================================
@@ -152,3 +156,90 @@ def get_canteen_data(request):
     data = {str(c['id']): c['billing_type'] for c in canteens}
     
     return JsonResponse(data)
+
+# management/views.py (सबसे नीचे जोड़ें)
+
+# ==========================================
+# 5. स्टाफ प्रोफाइल व्यू (Full Ledger / Khata Book Logic)
+# ==========================================
+def staff_profile_view(request, staff_id):
+    staff = get_object_or_404(Staff, pk=staff_id)
+    
+    # 1. कब से हिसाब शुरू करना है? (Joining Date से या इस साल की शुरुआत से)
+    start_date = staff.joining_date if staff.joining_date else date(date.today().year, 1, 1)
+    today = date.today()
+    
+    ledger_data = []
+    total_payable_balance = 0  # यह बताएगा कि अंत में किसे पैसे देने हैं
+
+    # 2. महीने-दर-महीने लूप (Loop) चलाएं
+    current_calc_date = start_date.replace(day=1)
+    end_date = today.replace(day=1)
+
+    while current_calc_date <= end_date:
+        # महीने की आखिरी तारीख निकालें
+        last_day = current_calc_date + relativedelta(months=1) - timedelta(days=1)
+        
+        # A. उस महीने की सैलरी (अगर अभी महीना चल रहा है, तो भी पूरी सैलरी दिखाएंगे अनुमान के लिए)
+        monthly_salary = staff.monthly_salary
+        
+        # B. उस महीने ली गई छुट्टियां (Leaves)
+        leaves = StaffLeave.objects.filter(
+            staff=staff,
+            start_date__gte=current_calc_date,
+            end_date__lte=last_day
+        )
+        total_leave_days = sum(leave.total_days() for leave in leaves)
+        
+        # C. सैलरी में से कटौती (Deduction)
+        # 30 दिन का महीना मानकर एक दिन की सैलरी निकालें
+        daily_rate = monthly_salary / 30 
+        deduction = daily_rate * total_leave_days
+        final_salary_earned = monthly_salary - deduction # उस महीने की कमाई
+
+        # D. उस महीने लिया गया पैसा (Advance + Payment)
+        payments = SalaryPayment.objects.filter(
+            staff=staff,
+            date__gte=current_calc_date,
+            date__lte=last_day
+        ).aggregate(Sum('amount'))['amount__sum'] or 0
+
+        # E. उस महीने का बैलेंस (कमाई - लिया गया पैसा)
+        month_balance = final_salary_earned - payments
+        
+        # टोटल बैलेंस में जोड़ें
+        total_payable_balance += month_balance
+
+        ledger_data.append({
+            'month': current_calc_date.strftime("%B %Y"),
+            'earned': final_salary_earned,
+            'paid': payments,
+            'leaves': total_leave_days,
+            'balance': month_balance
+        })
+
+        # अगले महीने पर जाएं
+        current_calc_date += relativedelta(months=1)
+
+    # लिस्ट को उल्टा करें (ताकि लेटेस्ट महीना सबसे ऊपर दिखे)
+    ledger_data.reverse()
+
+    context = {
+        'staff': staff,
+        'ledger_data': ledger_data,
+        'overall_balance': total_payable_balance,
+    }
+    return render(request, 'management/payment_summary.html', context)
+
+# management/views.py (सबसे नीचे)
+
+# 6. स्टाफ लिस्ट व्यू (Staff List View)
+def staff_list_view(request):
+    # सारे स्टाफ को नाम से अल्फाबेटिकल ऑर्डर में लाएं
+    all_staff = Staff.objects.all().order_by('name')
+    return render(request, 'management/staff_list.html', {'all_staff': all_staff})
+
+# 7. स्टाफ डिटेल व्यू (Staff Bio-Data / ID Card Style)
+def staff_detail_view(request, staff_id):
+    staff = get_object_or_404(Staff, pk=staff_id)
+    return render(request, 'management/staff_detail.html', {'staff': staff})

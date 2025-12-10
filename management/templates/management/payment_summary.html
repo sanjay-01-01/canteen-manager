@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load humanize %} {% block title %}{{ staff.name }} - Ledger{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark">📒 {{ staff.name }}'s Khata Book</h2>
+            <p class="text-muted">Role: {{ staff.role }} | Phone: {{ staff.phone }}</p>
+        </div>
+        <a href="{% url 'payroll_summary' %}" class="btn btn-outline-secondary">
+            ← Back to List
+        </a>
+    </div>
+
+    <div class="card shadow border-0 rounded-3 mb-4">
+        <div class="card-body p-4 text-center">
+            <h5 class="text-muted text-uppercase fw-bold mb-3">Current Net Balance (Net Hisab)</h5>
+            
+            {% if overall_balance > 0 %}
+                <h1 class="display-4 fw-bold text-success">
+                    + ₹ {{ overall_balance|floatformat:2 }}
+                </h1>
+                <div class="alert alert-success d-inline-block mt-2">
+                    <strong>Jama Rashi:</strong> You hold this amount of {{ staff.name }}'s salary.
+                </div>
+            {% elif overall_balance < 0 %}
+                <h1 class="display-4 fw-bold text-danger">
+                    - ₹ {{ overall_balance|stringformat:"+d"|slice:"1:" }} </h1>
+                <div class="alert alert-danger d-inline-block mt-2">
+                    <strong>Advance Due:</strong> {{ staff.name }} owes you this amount.
+                </div>
+            {% else %}
+                <h1 class="display-4 fw-bold text-secondary">₹ 0</h1>
+                <span class="badge bg-secondary">All Clear</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm border-0 text-center py-4">
+                {% if staff.photo %}
+                    <img src="{{ staff.photo.url }}" class="rounded-circle mx-auto mb-3 border" style="width: 120px; height: 120px; object-fit: cover;">
+                {% else %}
+                    <div class="rounded-circle bg-light mx-auto mb-3 d-flex align-items-center justify-content-center border" style="width: 120px; height: 120px; font-size: 2rem;">
+                        {{ staff.name|slice:":1" }}
+                    </div>
+                {% endif %}
+                
+                <h5 class="fw-bold">{{ staff.name }}</h5>
+                <p class="text-muted mb-1">Joined: {% if staff.joining_date %}{{ staff.joining_date }}{% else %}N/A{% endif %}</p>
+                <p class="fw-bold text-primary">Salary: ₹ {{ staff.monthly_salary|floatformat:0 }}</p>
+                
+                <hr>
+                <div class="px-3">
+                    <small class="text-muted">Aadhar Card</small><br>
+                    {% if staff.aadhar_card %}
+                        <a href="{{ staff.aadhar_card.url }}" target="_blank" class="btn btn-sm btn-outline-primary mt-1">View Aadhar</a>
+                    {% else %}
+                        <span class="text-muted">- Not Uploaded -</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">📅 Month-wise Breakdown (Mahine ka Hisab)</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Month</th>
+                                <th class="text-end text-success">Earned (Salary)</th>
+                                <th class="text-end text-danger">Taken (Adv/Pay)</th>
+                                <th class="text-center">Leaves</th>
+                                <th class="text-end fw-bold">Balance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in ledger_data %}
+                            <tr>
+                                <td class="fw-bold text-muted">{{ entry.month }}</td>
+                                
+                                <td class="text-end text-success">
+                                    + ₹ {{ entry.earned|floatformat:0 }}
+                                </td>
+                                
+                                <td class="text-end text-danger">
+                                    - ₹ {{ entry.paid|floatformat:0 }}
+                                </td>
+
+                                <td class="text-center">
+                                    {% if entry.leaves > 0 %}
+                                        <span class="badge bg-warning text-dark">{{ entry.leaves }} days</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-end fw-bold">
+                                    {% if entry.balance > 0 %}
+                                        <span class="text-success">+ ₹ {{ entry.balance|floatformat:0 }}</span>
+                                    {% elif entry.balance < 0 %}
+                                        <span class="text-danger"> ₹ {{ entry.balance|floatformat:0 }}</span>
+                                    {% else %}
+                                        <span class="text-muted">0</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

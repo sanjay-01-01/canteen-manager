@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}All Staff Members{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark">👥 Staff Members List</h2>
+        <a href="{% url 'home_dashboard' %}" class="btn btn-secondary shadow-sm">
+            ← Back to Dashboard
+        </a>
+    </div>
+
+    <div class="row">
+        {% for staff in all_staff %}
+        <div class="col-md-4 col-sm-6 mb-4">
+            <a href="{% url 'staff_detail' staff.id %}" class="text-decoration-none">
+                <div class="card shadow-sm border-0 h-100 staff-card hover-effect">
+                    <div class="card-body d-flex align-items-center p-3">
+                        <div class="me-3">
+                            {% if staff.photo %}
+                                <img src="{{ staff.photo.url }}" class="rounded-circle border" style="width: 60px; height: 60px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-light d-flex justify-content-center align-items-center border text-secondary fw-bold" style="width: 60px; height: 60px; font-size: 1.2rem;">
+                                    {{ staff.name|slice:":1" }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            <h5 class="fw-bold text-dark mb-1">{{ staff.name }}</h5>
+                            <span class="badge bg-primary">{{ staff.role }}</span>
+                        </div>
+                        
+                        <div class="ms-auto text-muted">
+                            ➜
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <h4 class="text-muted">No staff members found.</h4>
+            <a href="{% url 'admin:management_staff_add' %}" class="btn btn-primary mt-3">Add New Staff</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    /* होवर इफेक्ट (Mouse ले जाने पर थोड़ा ऊपर उठेगा) */
+    .hover-effect {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .hover-effect:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock %}
