@@ -57,8 +57,8 @@ class Staff(models.Model):
     )
     name = models.CharField(max_length=100, verbose_name="Staff Name")
     role = models.CharField(max_length=10, choices=ROLES, default='Helper', verbose_name="Role")
-
-    joining_date = models.DateField(verbose_name="Joining Date")
+    phone = models.CharField(max_length=15, default='0000000000', verbose_name="Phone Number")
+    joining_date = models.DateField(null=True, blank=True, verbose_name="Joining Date")
     monthly_salary = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Monthly Salary")
 
     def __str__(self):

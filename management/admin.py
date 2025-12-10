@@ -10,7 +10,7 @@ class CanteenAdmin(admin.ModelAdmin):
 
 # 2. Staff Leave Admin
 class StaffLeaveAdmin(admin.ModelAdmin):
-    list_display = ('staff', 'start_date', 'end_date', 'total_days', 'reason')
+    list_display = ('staff', 'start_date', 'end_date', 'total_days', 'reason',)
     list_filter = ('staff', 'start_date')
 
 # 3. DailyEntry Admin (सरल और साफ)
@@ -49,12 +49,19 @@ class ExpenseAdmin(admin.ModelAdmin):
     list_filter = ('date', 'category', 'payment_mode', 'canteen')
     search_fields = ('description',)
 
+class StaffAdmin(admin.ModelAdmin):
+    list_display = ('name', 'role', 'canteen', 'phone', 'joining_date', 'monthly_salary')
+    search_fields = ('name', 'phone')
+    list_filter = ('canteen', 'role')
+
+
+admin.site.register(Staff, StaffAdmin)
+
 # पुराने 'admin.site.register(Expense)' को हटाकर यह लिखें:
 admin.site.register(Expense, ExpenseAdmin)
 
 # 4. सब कुछ रजिस्टर करें
 admin.site.register(Canteen, CanteenAdmin)
-admin.site.register(Staff)
 admin.site.register(StaffLeave, StaffLeaveAdmin)
 admin.site.register(SalaryPayment)
 admin.site.register(DailyEntry, DailyEntryAdmin)

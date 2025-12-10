@@ -36,20 +36,31 @@
     <p>*** You can now add some **Expense** and **Salary Payment (Advance)** data via the Admin Panel to make this reporting work. ***</p>
 
     <hr>
-    <h3>📍 Canteen Wise Reports ({{ all_canteens|length }} Total)</h3>
-
-    <div style="display: flex; gap: 20px;">
-        {% for canteen in all_canteens %}
-            <a href="{% url 'canteen_report' canteen.id %}" style="padding: 10px; border: 1px solid #ccc; text-decoration: none; background-color: #f9f9f9;">
-                {{ canteen.name }} Report →
-            </a>
-        {% endfor %}
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">📍 Canteen Wise Reports ({{ total_canteens }} Total)</h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2">
+                {% for canteen in all_canteens %}
+                    <a href="{% url 'canteen_summary_report' canteen.id %}" class="btn btn-outline-primary">
+                        {{ canteen.name }} Report →
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
     </div>
-
     <hr>
-    <h3>👨‍🍳 Staff and Payroll</h3>
-    <a href="{% url 'payroll_summary' %}" style="padding: 10px; border: 1px solid #cce; text-decoration: none; background-color: #eef;">
-        Payroll & Advance Summary →
-    </a>
-
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">👨‍🍳 Staff and Payroll ({{ total_staff }} Staff Members)</h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'payroll_summary' %}" class="btn btn-outline-primary">
+                    Payroll & Advance Summary →
+                </a>
+            </div>
+        </div>
+    </div>
 {% endblock content %}
