@@ -8,4 +8,5 @@ urlpatterns = [
     path('canteen/<int:canteen_id>/', views.canteen_report, name='canteen_report'),
     # नया URL पाथ
     path('payroll/', views.payroll_summary, name='payroll_summary'), 
+    path('get-canteen-data/', views.get_canteen_data, name='get_canteen_data'),
 ]

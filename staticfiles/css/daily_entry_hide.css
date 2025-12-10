@@ -1,0 +1,9 @@
+/* management/static/css/daily_entry_hide.css */
+
+/* Daily Supply Quantities (2nd fieldset) और Daily Payment Received (3rd fieldset) को छिपाएँ */
+
+/* Basic Info के बाद आने वाले सभी fieldset को छिपाएँ */
+.fieldset.module:nth-of-type(2),
+.fieldset.module:nth-of-type(3) { 
+    display: none;
+}

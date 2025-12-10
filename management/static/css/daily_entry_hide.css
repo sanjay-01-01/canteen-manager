@@ -1,0 +1,9 @@
+/* management/static/css/daily_entry_hide.css */
+
+/* Basic Info के बाद वाले सभी Fieldsets को छिपाएं */
+/* 2nd = Supply, 3rd = Payment, 4th = Tokens */
+.fieldset.module:nth-of-type(2),
+.fieldset.module:nth-of-type(3),
+.fieldset.module:nth-of-type(4) { 
+    display: none;
+}

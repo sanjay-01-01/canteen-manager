@@ -5,11 +5,24 @@ from datetime import date
 
 # This class will create a database table named 'management_canteen'
 class Canteen(models.Model):
+
+    BILLING_CHOICES = [
+        ('DAILY', 'Daily Payment/Tracking'),
+        ('MONTHLY', 'Monthly Fixed Billing'),
+    ]
+
     # Name of the Canteen (e.g., Canteen A, Factory Mess)
     name = models.CharField(max_length=100, unique=True, verbose_name="Canteen Name")
 
     # Location/Address of the Canteen
     location = models.CharField(max_length=255, verbose_name="Location")
+
+    billing_type = models.CharField(
+        max_length=10, 
+        choices=BILLING_CHOICES, 
+        default='DAILY', 
+        verbose_name="Billing Type"
+    )
 
     # Average number of lunches sent daily
     daily_lunch_count = models.IntegerField(default=0, verbose_name="Daily Lunch Count")
@@ -92,44 +105,56 @@ class StaffLeave(models.Model):
 
 # management/models.py (StaffLeave class के नीचे)
 
+# management/models.py (Expense class को इससे बदलें)
+
 class Expense(models.Model):
-    # खर्च की श्रेणियां
+    # 1. खर्च की श्रेणियां (Milk, Auto, Wood जोड़ दिया गया है)
     CATEGORY_CHOICES = [
         ('Kirana', 'Kirana/Grocery'),
         ('Gas', 'Gas Cylinder/Fuel'),
         ('Salary', 'Salary/Wages'),
+        ('Milk', 'Milk/Dairy'),              # New
+        ('Auto', 'Auto Rickshaw/Transport'), # New
+        ('Wood', 'Wood/Fuel'),               # New
         ('Other', 'Other Expenses'),
     ]
 
-    # Foreign Key: किस कैंटीन का खर्च है (NULL हो सकता है अगर यह जनरल खर्च है, जैसे: हेड ऑफिस का किराना)
+    # 2. पेमेंट का तरीका (नया सिस्टम)
+    PAYMENT_MODE_CHOICES = [
+        ('Pending', '🔴 Pending / Due'),
+        ('Cash', '🟢 Paid - Cash'),
+        ('Online', '🔵 Paid - Online'),
+    ]
+
     canteen = models.ForeignKey(
         Canteen, 
         on_delete=models.SET_NULL, 
         null=True, 
-        blank=True,
+        blank=True, 
         verbose_name="Associated Canteen"
     )
 
-    date = models.DateField(auto_now_add=True, verbose_name="Date") # खर्च की तारीख
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, verbose_name="Category") # खर्च की श्रेणी
-    description = models.CharField(max_length=255, verbose_name="Description") # सामान का विवरण (जैसे: 10kg Wheat Flour)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Amount") # खर्च की राशि
-
-    # जैसे: गैस के 2 सिलेंडर या 50 Kg चावल
+    date = models.DateField(auto_now_add=True, verbose_name="Date")
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, verbose_name="Category")
+    description = models.CharField(max_length=255, verbose_name="Description")
+    amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Amount")
     quantity = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Quantity") 
 
-    # यह चेक करने के लिए कि भुगतान किया गया है या यह बकाया है
-    is_paid = models.BooleanField(default=True, verbose_name="Paid Status") 
+    # हमने 'is_paid' हटाकर 'payment_mode' लगा दिया है
+    payment_mode = models.CharField(
+        max_length=20, 
+        choices=PAYMENT_MODE_CHOICES, 
+        default='Cash', 
+        verbose_name="Payment Status"
+    )
 
     def __str__(self):
-        return f"{self.category} - {self.description} ({self.date})"
+        return f"{self.category} - {self.amount} ({self.payment_mode})"
 
     class Meta:
         verbose_name = "Expense Entry"
         verbose_name_plural = "Expenses"
-        ordering = ['-date'] # सबसे नया खर्च पहले दिखे
-
-
+        ordering = ['-date']
 # management/models.py (Expense class के नीचे)
 
 class SalaryPayment(models.Model):
@@ -157,5 +182,58 @@ class SalaryPayment(models.Model):
 
     class Meta:
         verbose_name = "Salary/Advance Payment"
-        verbose_name_plural = "Salary Payments"
+        verbose_name_plural = "Salary Payments" 
         ordering = ['-date']
+
+
+# management/models.py (SalaryPayment class के नीचे)
+
+class DailyEntry(models.Model):
+    # 1. Foreign Key
+    canteen = models.ForeignKey(
+        Canteen, 
+        on_delete=models.CASCADE, 
+        verbose_name="Canteen Name"
+    )
+    date = models.DateField(default=date.today, verbose_name="Entry Date")
+
+    # 2. Daily Supplies (Items and Quantity)
+    # Shree Aaiji Canteen: Daily variable supply. Other Canteens: Fixed supply tracking.
+    lunch_qty = models.IntegerField(default=0, verbose_name="Lunch Qty")
+    dinner_qty = models.IntegerField(default=0, verbose_name="Dinner Qty")
+    nasta_qty = models.IntegerField(default=0, verbose_name="Nasta Qty")
+    tea_qty = models.IntegerField(default=0, verbose_name="Tea Qty") # Shree Aaiji only
+
+    normal_token_qty = models.IntegerField(default=0, verbose_name="Normal Token Qty")
+    special_token_qty = models.IntegerField(default=0, verbose_name="Special Token Qty")
+    guest_token_qty = models.IntegerField(default=0, verbose_name="Guest Token Qty")
+
+    # ... (Cash और Online फील्ड्स पहले से ही यहाँ हैं, उन्हें वैसे ही रहने दें) ...
+    cash_received = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, null=True, verbose_name="Cash Payment Received")
+    online_received = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, null=True, verbose_name="Online Payment Received")
+
+    # 3. Payment Tracking (Conditional for DAILY Billing Type)
+    # If Canteen.billing_type is 'DAILY', these fields are mandatory/visible.
+    cash_received = models.DecimalField(
+    max_digits=10, 
+    decimal_places=2, 
+    default=0.00, 
+    null=True, # <--- यह जोड़ें
+    verbose_name="Cash Payment Received"
+    )
+    online_received = models.DecimalField(
+    max_digits=10, 
+    decimal_places=2, 
+    default=0.00, 
+    null=True, # <--- यह जोड़ें
+    verbose_name="Online Payment Received"
+    )
+
+    def __str__(self):
+        return f"{self.canteen.name} - Entry on {self.date}"
+
+    class Meta:
+        verbose_name = "Daily Service/Payment Entry"
+        verbose_name_plural = "Daily Entries"
+        unique_together = ('canteen', 'date') # एक कैंटीन में एक दिन में सिर्फ एक एंट्री
+        ordering = ['-date', 'canteen__name']

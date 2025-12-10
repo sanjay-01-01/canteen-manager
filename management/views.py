@@ -13,7 +13,8 @@ from django.db.models import Sum
 from .models import Canteen, Expense, Staff 
 from django.shortcuts import get_object_or_404 
 
-
+from django.http import JsonResponse
+from .models import Canteen
 
 # management/views.py
 
@@ -145,5 +146,19 @@ def canteen_report(request, canteen_id):
     }
 
     return render(request, 'management/canteen_report.html', context)
+
+
+# management/views.py (सबसे नीचे जोड़ें)
+
+
+
+def get_canteen_data(request):
+    # डेटाबेस से सभी कैंटीनों की ID और Billing Type लाओ
+    canteens = Canteen.objects.all().values('id', 'billing_type')
+    
+    # इसे एक डिक्शनरी में बदलो: { '1': 'DAILY', '2': 'MONTHLY', ... }
+    data = {str(c['id']): c['billing_type'] for c in canteens}
+    
+    return JsonResponse(data)
 
 

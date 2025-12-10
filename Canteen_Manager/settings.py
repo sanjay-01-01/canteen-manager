@@ -115,4 +115,16 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
+# BASE_DIR को सुनिश्चित करें:
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) 
+
 STATIC_URL = 'static/'
+
+# यह फ़ोल्डर जहाँ Django आपकी सभी JS/CSS फ़ाइलों को इकट्ठा करेगा
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles') 
+
+# यह फ़ोल्डर जहाँ आपके कस्टम JS/CSS फ़ाइलें मौजूद हैं
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'management\static'),
+]
