@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 500px;">
+    <div class="card shadow border-0">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0 fw-bold">💰 Add Daily Income (Galla)</h5>
+        </div>
+        <div class="card-body p-4">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Date</label>
+                    {{ form.date }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Canteen</label>
+                    {{ form.canteen }}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold text-success">💵 Cash</label>
+                        {{ form.cash_received }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold text-primary">📱 Online (UPI)</label>
+                        {{ form.online_received }}
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-3">
+                    <button type="submit" class="btn btn-success fw-bold">Save Income</button>
+                    <a href="{% url 'home_dashboard' %}" class="btn btn-light border">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

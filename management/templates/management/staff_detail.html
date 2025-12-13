@@ -75,6 +75,18 @@
                             </div>
 
                             <div class="mt-4 p-3 bg-light rounded border">
+                                <h6 class="text-muted text-uppercase fw-bold mb-3 border-bottom pb-2">🏦 Bank Details</h6>
+                                
+                                <div class="mb-2 d-flex justify-content-between">
+                                    <span class="text-muted small fw-bold">Account Number:</span>
+                                    <span class="fw-bold text-dark">{{ staff.bank_account_no|default:"-" }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-muted small fw-bold">IFSC Code:</span>
+                                    <span class="fw-bold text-dark text-uppercase">{{ staff.ifsc_code|default:"-" }}</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 p-3 bg-light rounded border">
                                 <label class="text-muted small fw-bold mb-2">DOCUMENTS</label>
                                 <div class="d-flex align-items-center justify-content-between">
                                     <span>Aadhar Card</span>

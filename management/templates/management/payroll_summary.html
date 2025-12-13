@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block title %}Payroll Summary{% endblock %}
 
@@ -20,7 +21,7 @@
         <div class="card-header bg-primary text-white py-3">
             <h5 class="mb-0">💰 Monthly Salary & Advance Status</h5>
         </div>
-
+        
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover table-striped align-middle mb-0">
@@ -40,54 +41,54 @@
                         {% for item in payroll_data %}
                         <tr>
                             <td class="ps-4">
-                                <a href="{% url 'staff_profile' item.staff.id %}"
-                                    class="text-decoration-none text-dark">
-                                    <div class="fw-bold link-primary">{{ item.staff.name }}</div>
-                                </a>
-                                <small class="text-muted">{{ item.staff.role }}</small>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        {% if item.staff.photo %}
+                                            <img src="{{ item.staff.photo.url }}" class="rounded-circle" style="width: 45px; height: 45px; object-fit: cover; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                        {% else %}
+                                            <div class="rounded-circle bg-light d-flex justify-content-center align-items-center text-secondary fw-bold" style="width: 45px; height: 45px; border: 1px solid #ccc;">
+                                                {{ item.staff.name|slice:":1" }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <a href="{% url 'staff_profile' item.staff.id %}" class="fw-bold text-decoration-none text-dark stretched-link">
+                                            {{ item.staff.name }}
+                                        </a>
+                                        <div class="small text-muted">{{ item.staff.role }}</div>
+                                    </div>
+                                </div>
                             </td>
 
-                            <td>
-                                <span class="badge bg-light text-dark border">
-                                    {{ item.canteen_name }}
-                                </span>
-                            </td>
-
-                            <td>
-                                {% if item.staff.joining_date %}
-                                {{ item.staff.joining_date|date:"d M, Y" }}
-                                {% else %}
-                                <span class="text-muted">-</span>
-                                {% endif %}
-                            </td>
-
-                            <td class="fw-bold">₹ {{ item.monthly_salary|floatformat:0 }}</td>
-
+                            <td><span class="badge bg-light text-dark border">{{ item.canteen_name }}</span></td>
+                            <td>{% if item.staff.joining_date %}{{ item.staff.joining_date|date:"d M, Y" }}{% else %}-{% endif %}</td>
+                            <td class="fw-bold">₹ {{ item.monthly_salary|floatformat:0|intcomma }}</td>
+                            
                             <td class="text-center">
                                 {% if item.leaves_this_month > 0 %}
-                                <span class="badge bg-warning text-dark">{{ item.leaves_this_month }} Days</span>
+                                    <span class="badge bg-warning text-dark">{{ item.leaves_this_month }} Days</span>
                                 {% else %}
-                                <span class="text-muted">-</span>
+                                    <span class="text-muted">-</span>
                                 {% endif %}
                             </td>
 
                             <td class="fw-bold text-danger">
                                 {% if item.total_advance_paid > 0 %}
-                                ₹ {{ item.total_advance_paid|floatformat:0 }}
+                                    ₹ {{ item.total_advance_paid|floatformat:0|intcomma }}
                                 {% else %}
-                                <span class="text-muted">-</span>
+                                    <span class="text-muted">-</span>
                                 {% endif %}
                             </td>
 
                             <td class="fw-bold text-success">
-                                ₹ {{ item.paid_this_month|floatformat:0 }}
+                                ₹ {{ item.paid_this_month|floatformat:0|intcomma }}
                             </td>
 
                             <td class="text-center">
                                 {% if item.total_advance_paid > 0 %}
-                                <span class="badge bg-danger">Advance Pending</span>
+                                    <span class="badge bg-danger">Advance Pending</span>
                                 {% else %}
-                                <span class="badge bg-success">Clear</span>
+                                    <span class="badge bg-success">Clear</span>
                                 {% endif %}
                             </td>
                         </tr>
@@ -95,16 +96,12 @@
                         <tr>
                             <td colspan="8" class="text-center py-5 text-muted">
                                 <h5>No staff data found.</h5>
-                                <p>Add staff members from the Admin Panel.</p>
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-        </div>
-        <div class="card-footer bg-white text-muted text-end py-2">
-            <small>Generated automatically based on salary and expense entries.</small>
         </div>
     </div>
 </div>

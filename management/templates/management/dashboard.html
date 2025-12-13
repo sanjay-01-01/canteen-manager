@@ -1,77 +1,229 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+{% load humanize %}
 
-{% block title %}Monthly Summary{% endblock %}
+{% block title %}Executive Dashboard{% endblock %}
 
 {% block content %}
-<h2>➡️ {{ current_month }} Monthly Summary</h2>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
-<p>Total Canteens: <b>{{ total_canteens }}</b> | Total Staff: <b>{{ total_staff }}</b></p>
-<hr>
+<div class="container mt-4 mb-5">
 
-<h3>💰 Overall Expenses and Payments Summary</h3>
-<table border="1" cellpadding="10" cellspacing="0">
-    <thead>
-        <tr>
-            <th>Description</th>
-            <th>Amount</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td>✅ Total Monthly Expense (Grocery, Gas, Other):</td>
-            <td>₹ {{ monthly_expenses_sum|floatformat:2 }}</td>
-        </tr>
-        <tr>
-            <td>💸 Total Monthly Salary/Advance Paid:</td>
-            <td>₹ {{ monthly_payments_sum|floatformat:2 }}</td>
-        </tr>
-        <tr>
-            <td>🚨 Total Outstanding Advance (Overall):</td>
-            <td>₹ {{ total_advance_paid|floatformat:2 }}</td>
-        </tr>
-    </tbody>
-</table>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark">📊 Executive Dashboard</h2>
+            <p class="text-muted mb-0">Overview for <span class="fw-bold text-primary">{{ current_month }}</span></p>
+        </div>
 
-<br>
-<p>*** You can now add some **Expense** and **Salary Payment (Advance)** data via the Admin Panel to make this reporting
-    work. ***</p>
-
-<hr>
-<div class="card mb-4 shadow-sm">
-    <div class="card-header bg-white">
-        <h5 class="mb-0">📍 Canteen Wise Reports ({{ total_canteens }} Total)</h5>
-    </div>
-    <div class="card-body">
-        <div class="d-flex flex-wrap gap-2">
-            {% for canteen in all_canteens %}
-            <a href="{% url 'canteen_summary_report' canteen.id %}" class="btn btn-outline-primary">
-                {{ canteen.name }} Report →
+        <div class="d-flex align-items-center">
+            <a href="{% url 'add_daily_entry' %}" class="btn btn-success shadow-sm rounded-pill px-3 me-2">
+                <i class="bi bi-currency-rupee me-1"></i> Add Income
             </a>
-            {% endfor %}
+
+            <a href="{% url 'add_expense' %}" class="btn btn-danger shadow-sm rounded-pill px-3 me-3">
+                <i class="bi bi-plus-lg me-1"></i> Add Expense
+            </a>
+
+            <div class="d-none d-md-block text-end border-start ps-3">
+                <span class="badge bg-white text-dark border shadow-sm px-3 py-2 rounded-pill mb-1">
+                    <i class="bi bi-shop-window text-primary"></i> {{ total_canteens }} Canteens
+                </span>
+
+                <span class="badge bg-white text-dark border shadow-sm px-3 py-2 ms-1 rounded-pill">
+                    <i class="bi bi-people text-success"></i> {{ total_staff }} Staff
+                </span>
+            </div>
         </div>
     </div>
 </div>
-<hr>
-<div class="card mb-4 shadow-sm">
-    <div class="card-header bg-white">
-        <h5 class="mb-0">👨‍🍳 Staff and Payroll ({{ total_staff }} Staff Members)</h5>
+
+<div class="row mb-4">
+    <div class="col-md-4 mb-3">
+        <div class="card border-0 shadow-sm h-100 border-start border-4 border-success">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-uppercase text-muted fw-bold mb-1" style="font-size: 0.8rem;">Total Income</h6>
+                        <h3 class="fw-bold text-success mb-0">₹ {{ total_income|floatformat:0|intcomma }}</h3>
+                    </div>
+                    <div class="bg-success bg-opacity-10 p-3 rounded-circle text-success">
+                        <i class="bi bi-cash-coin fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="card-body">
-        <div class="d-flex flex-wrap gap-2">
 
-            <a href="{% url 'payroll_summary' %}" class="btn btn-outline-primary shadow-sm">
-                📊 Payroll & Advance Summary →
-            </a>
+    <div class="col-md-4 mb-3">
+        <div class="card border-0 shadow-sm h-100 border-start border-4 border-danger">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-uppercase text-muted fw-bold mb-1" style="font-size: 0.8rem;">Total Expenses
+                        </h6>
+                        <h3 class="fw-bold text-danger mb-0">₹ {{ total_expense|floatformat:0|intcomma }}</h3>
+                    </div>
+                    <div class="bg-danger bg-opacity-10 p-3 rounded-circle text-danger">
+                        <i class="bi bi-wallet2 fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            <a href="{% url 'staff_list' %}" class="btn btn-outline-primary shadow-sm">
-                👥 Staff Details (Khata Book) →
-            </a>
-
-            <a href="{% url 'admin:management_staff_changelist' %}" class="btn btn-outline-dark shadow-sm">
-                ⚙️ Manage Staff (Add/Edit) →
-            </a>
-
+    <div class="col-md-4 mb-3">
+        <div class="card border-0 shadow-sm h-100 border-start border-4 border-primary">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-uppercase text-muted fw-bold mb-1" style="font-size: 0.8rem;">Net Profit / Loss
+                        </h6>
+                        <h3 class="fw-bold text-primary mb-0">₹ {{ net_profit|floatformat:0|intcomma }}</h3>
+                    </div>
+                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary">
+                        <i class="bi bi-graph-up-arrow fs-3"></i>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-{% endblock content %}
+
+<div class="row mb-4">
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-pie-chart me-2"></i>Expense Breakdown</h5>
+
+                <a href="{% url 'export_expenses' %}" class="btn btn-success btn-sm shadow-sm rounded-pill">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> Download
+                </a>
+            </div>
+            <div class="card-body">
+                <div style="height: 300px;">
+                    <canvas id="expensePieChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3 border-0">
+                <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-bar-chart me-2"></i>Income vs Expense</h5>
+            </div>
+            <div class="card-body">
+                <div style="height: 300px;">
+                    <canvas id="profitBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold text-uppercase text-muted">📍 Canteen Reports</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    {% for canteen in all_canteens %}
+                    <a href="{% url 'canteen_summary_report' canteen.id %}"
+                        class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                        {{ canteen.name }} Report ➜
+                    </a>
+                    {% empty %}
+                    <span class="text-muted">No canteens added yet.</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 mb-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold text-uppercase text-muted">👨‍🍳 Staff & Payroll</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{% url 'payroll_summary' %}" class="btn btn-primary btn-sm rounded-pill px-3">
+                        <i class="bi bi-receipt"></i> Payroll Summary
+                    </a>
+                    <a href="{% url 'staff_list' %}" class="btn btn-success btn-sm rounded-pill px-3">
+                        <i class="bi bi-journal-bookmark"></i> Staff
+                    </a>
+                    <a href="{% url 'admin:management_staff_changelist' %}"
+                        class="btn btn-dark btn-sm rounded-pill px-3">
+                        <i class="bi bi-gear"></i> Manage Staff
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<script>
+    // Charts Data
+    const pieLabels = {{ pie_labels| safe }};
+    const pieData = {{ pie_data| safe }};
+    const totalIncome = {{ total_income }};
+    const totalExpense = {{ total_expense }};
+
+    // Chart 1: Expense Breakdown
+    const ctxPie = document.getElementById('expensePieChart').getContext('2d');
+    if (pieData.length === 0) {
+        ctxPie.font = "16px Arial";
+        ctxPie.fillText("No Expense Data Available", 50, 150);
+    } else {
+        new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: pieLabels,
+                datasets: [{
+                    data: pieData,
+                    backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796'],
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'right' } },
+                cutout: '70%',
+            }
+        });
+    }
+
+    // Chart 2: Income vs Expense
+    const ctxBar = document.getElementById('profitBarChart').getContext('2d');
+    new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: ['Total Income', 'Total Expenses'],
+            datasets: [{
+                label: 'Amount (₹)',
+                data: [totalIncome, totalExpense],
+                backgroundColor: ['rgba(25, 135, 84, 0.7)', 'rgba(220, 53, 69, 0.7)'],
+                borderColor: ['rgb(25, 135, 84)', 'rgb(220, 53, 69)'],
+                borderWidth: 1,
+                borderRadius: 5,
+                barThickness: 50,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { borderDash: [2, 2] } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+</script>
+{% endblock %}

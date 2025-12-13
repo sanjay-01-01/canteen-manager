@@ -12,5 +12,9 @@ urlpatterns = [
     path('staff/<int:staff_id>/profile/', views.staff_profile_view, name='staff_profile'),
     path('staff/list/', views.staff_list_view, name='staff_list'),
     path('staff/<int:staff_id>/detail/', views.staff_detail_view, name='staff_detail'),
-    
+    path('export/expenses/', views.export_monthly_expenses, name='export_expenses'),
+    path('staff/<int:staff_id>/print/', views.print_staff_ledger, name='print_staff_ledger'),
+    path('staff/<int:staff_id>/add-payment/', views.add_staff_payment, name='add_staff_payment'),
+    path('add-expense/', views.add_expense, name='add_expense'),
+    path('add-daily-entry/', views.add_daily_entry, name='add_daily_entry'),
 ]

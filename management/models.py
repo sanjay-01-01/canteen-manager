@@ -60,8 +60,8 @@ class Staff(models.Model):
     phone = models.CharField(max_length=15, default='0000000000', verbose_name="Phone Number")
     joining_date = models.DateField(null=True, blank=True, verbose_name="Joining Date")
     monthly_salary = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Monthly Salary")
-
-    # --- नई फोटो फील्ड्स ---
+    bank_account_no = models.CharField(max_length=20, blank=True, null=True,verbose_name="Bank Account No")
+    ifsc_code = models.CharField(max_length=15, blank=True, null=True,verbose_name="IFSC Code")
     photo = models.ImageField(upload_to='staff_photos/', null=True, blank=True, verbose_name="Staff Photo")
     aadhar_card = models.ImageField(upload_to='staff_aadhar/', null=True, blank=True, verbose_name="Aadhar Card Photo")
     # ----------------------
@@ -117,7 +117,7 @@ class Expense(models.Model):
     CATEGORY_CHOICES = [
         ('Kirana', 'Kirana/Grocery'),
         ('Gas', 'Gas Cylinder/Fuel'),
-        ('Salary', 'Salary/Wages'),
+        ('Vegetables', 'Vegetables (Sabzi)'),
         ('Milk', 'Milk/Dairy'),              # New
         ('Auto', 'Auto Rickshaw/Transport'), # New
         ('Wood', 'Wood/Fuel'),               # New
@@ -139,7 +139,7 @@ class Expense(models.Model):
         verbose_name="Associated Canteen"
     )
 
-    date = models.DateField(auto_now_add=True, verbose_name="Date")
+    date = models.DateField(verbose_name="Date")
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, verbose_name="Category")
     description = models.CharField(max_length=255, verbose_name="Description")
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Amount")
@@ -242,3 +242,5 @@ class DailyEntry(models.Model):
         verbose_name_plural = "Daily Entries"
         unique_together = ('canteen', 'date') # एक कैंटीन में एक दिन में सिर्फ एक एंट्री
         ordering = ['-date', 'canteen__name']
+
+

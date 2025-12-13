@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 500px;">
+    <div class="card shadow border-0">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0 fw-bold">💸 Give Payment/Advance</h5>
+        </div>
+        <div class="card-body p-4">
+            <h6 class="text-muted mb-3">To: <strong>{{ staff.name }}</strong></h6>
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="mb-3">
+                    <label class="form-label">Payment Type</label>
+                    {{ form.payment_type }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Date</label>
+                    {{ form.date }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Amount (₹)</label>
+                    {{ form.amount }}
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success fw-bold">Save Payment</button>
+                    <a href="{% url 'staff_profile' staff.id %}" class="btn btn-light border">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

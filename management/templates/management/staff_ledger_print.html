@@ -1,0 +1,134 @@
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Statement - {{ staff.name }}</title>
+    <style>
+        body { font-family: 'Helvetica', sans-serif; color: #333; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #333; padding-bottom: 20px; }
+        .header h1 { margin: 0; font-size: 24px; text-transform: uppercase; }
+        .header p { margin: 5px 0; color: #666; font-size: 14px; }
+        
+        .info-box { display: flex; justify-content: space-between; margin-bottom: 30px; }
+        .info-left h3 { margin: 0 0 5px 0; color: #000; }
+        .info-left p { margin: 2px 0; font-size: 14px; color: #555; }
+        
+        .balance-box { 
+            border: 2px solid #000; padding: 10px 20px; text-align: center; border-radius: 8px; 
+        }
+        .balance-box span { display: block; font-size: 12px; color: #666; text-transform: uppercase; }
+        .balance-box strong { display: block; font-size: 24px; color: #000; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th { background-color: #f2f2f2; border-bottom: 2px solid #ddd; padding: 10px; text-align: left; }
+        td { border-bottom: 1px solid #eee; padding: 10px; }
+        
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .success { color: green; font-weight: bold; }
+        .danger { color: #d9534f; font-weight: bold; }
+        .fw-bold { font-weight: bold; }
+        
+        /* Print Footer */
+        .footer { margin-top: 50px; display: flex; justify-content: space-between; font-size: 12px; }
+        .footer div { text-align: center; width: 200px; border-top: 1px solid #ccc; padding-top: 5px; }
+
+        @media print {
+            .no-print { display: none; }
+            body { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="no-print" style="margin-bottom: 20px; text-align: center;">
+        <button onclick="window.print()" style="padding: 10px 20px; background: #0d6efd; color: white; border: none; cursor: pointer; border-radius: 5px; font-weight: bold;">
+            🖨️ Print / Save PDF
+        </button>
+        <button onclick="window.close()" style="padding: 10px 20px; background: #6c757d; color: white; border: none; cursor: pointer; border-radius: 5px; margin-left: 10px;">
+            Close
+        </button>
+    </div>
+
+    <div class="header">
+        <h1>Canteen Manager</h1>
+        <p>Official Staff Account Statement (Khata Book)</p>
+        <p>Generated on: {{ print_date|date:"d M, Y" }}</p>
+    </div>
+
+    <div class="info-box">
+        <div class="info-left">
+            <h3>TO: {{ staff.name }}</h3>
+            <p>Role: {{ staff.role }}</p>
+            <p>Phone: {{ staff.phone }}</p>
+            <p>Canteen: {{ staff.canteen.name }}</p>
+        </div>
+        <div class="balance-box">
+            <span>Current Net Balance</span>
+            <strong>
+                {% if overall_balance > 0 %}
+                    <span style="color: green;">+ ₹ {{ overall_balance|intcomma }}</span>
+                {% elif overall_balance < 0 %}
+                    <span style="color: red;">{{ overall_balance|intcomma }}</span>
+                {% else %}
+                    ₹ 0
+                {% endif %}
+            </strong>
+        </div>
+    </div>
+
+    <h4 style="border-bottom: 1px solid #ddd; padding-bottom: 5px;">Transaction History</h4>
+    <table>
+        <thead>
+            <tr>
+                <th width="15%">Date</th>
+                <th width="40%">Description</th>
+                <th width="15%" class="text-right">Credit (+)</th>
+                <th width="15%" class="text-right">Debit (-)</th>
+                <th width="15%" class="text-right">Balance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in ledger_data %}
+            <tr>
+                <td>{{ row.date|date:"d M, Y" }}</td>
+                <td>{{ row.description }}</td>
+                
+                <td class="text-right">
+                    {% if row.credit > 0 %}
+                        <span class="success">{{ row.credit|floatformat:0|intcomma }}</span>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <td class="text-right">
+                    {% if row.debit > 0 %}
+                        <span class="danger">{{ row.debit|floatformat:0|intcomma }}</span>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <td class="text-right fw-bold">
+                    {% if row.balance > 0 %}
+                        <span class="success">{{ row.balance|floatformat:0|intcomma }}</span>
+                    {% elif row.balance < 0 %}
+                        <span class="danger">{{ row.balance|floatformat:0|intcomma }}</span>
+                    {% else %}
+                        0
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <div>Staff Signature</div>
+        <div>Manager Signature</div>
+    </div>
+
+</body>
+</html>

@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-57q4c_+l82grq0_lu719^s$%u83e*(vqudg-oe4+&vuvw3bu&j
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -132,3 +132,9 @@ STATICFILES_DIRS = [
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# settings.py ke sabse niche paste karein
+
+LOGIN_URL = 'login'              # Agar login nahi hai to yahan bhejo
+LOGIN_REDIRECT_URL = 'home_dashboard' # Login hone ke baad Dashboard par jao
+LOGOUT_REDIRECT_URL = 'login'    # Logout hone ke baad wapis Login page par aao

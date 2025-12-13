@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5" style="max-width: 600px;">
+    <div class="card shadow border-0">
+        <div class="card-header bg-danger text-white">
+            <h5 class="mb-0 fw-bold">📉 Add Daily Expense</h5>
+        </div>
+        <div class="card-body p-4">
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Date</label>
+                        {{ form.date }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Canteen</label>
+                        {{ form.canteen }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Category</label>
+                    {{ form.category }}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Description (Item Name)</label>
+                    {{ form.description }}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Amount (₹)</label>
+                        {{ form.amount }}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Payment Mode</label>
+                        {{ form.payment_mode }}
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-3">
+                    <button type="submit" class="btn btn-danger fw-bold">Save Expense</button>
+                    <a href="{% url 'home_dashboard' %}" class="btn btn-light border">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
