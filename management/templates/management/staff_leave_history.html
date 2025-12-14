@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Leave History{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    
+    <div class="row align-items-center mb-4 g-3">
+        <div class="col-md-5">
+            <h2 class="fw-bold text-dark mb-0">📅 Leave History</h2>
+            <p class="text-muted small mb-0">Track leaves status & history</p>
+        </div>
+
+        <div class="col-md-4">
+            <form method="GET" class="d-flex shadow-sm rounded-pill bg-white p-1 border">
+                <select name="staff" class="form-select border-0 rounded-pill ps-3" style="outline: none; box-shadow: none;">
+                    <option value="">-- All Staff Members --</option>
+                    {% for s in all_staff %}
+                    <option value="{{ s.id }}" {% if selected_staff_id == s.id %}selected{% endif %}>
+                        {{ s.name }} ({{ s.role }})
+                    </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-dark rounded-pill px-4 fw-bold">Filter</button>
+            </form>
+        </div>
+
+        <div class="col-md-3 text-end">
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{% url 'apply_leave' %}" class="btn btn-warning fw-bold shadow-sm rounded-pill btn-sm px-3">
+                    <i class="bi bi-plus-lg"></i> Apply
+                </a>
+                <a href="{% url 'staff_list' %}" class="btn btn-light border shadow-sm rounded-pill btn-sm px-3">
+                    Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 py-3 text-muted small text-uppercase">Staff Member</th>
+                        <th class="py-3 text-muted small text-uppercase">Duration</th>
+                        <th class="py-3 text-muted small text-uppercase text-center">Days</th>
+                        <th class="py-3 text-muted small text-uppercase">Reason</th>
+                        <th class="py-3 text-muted small text-uppercase text-center">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for leave in leaves %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex justify-content-center align-items-center fw-bold me-3 border" 
+                                     style="width: 40px; height: 40px;">
+                                    {{ leave.staff.name|slice:":1" }}
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-bold text-dark">{{ leave.staff.name }}</h6>
+                                    <small class="text-muted" style="font-size: 0.8rem;">{{ leave.staff.role }}</small>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold text-dark">{{ leave.start_date|date:"d M, Y" }}</span>
+                                <span class="text-muted small">to {{ leave.end_date|date:"d M, Y" }}</span>
+                            </div>
+                        </td>
+
+                        <td class="text-center">
+                            <span class="badge bg-light text-dark border">
+                                {{ leave.end_date|timeuntil:leave.start_date }}
+                            </span>
+                        </td>
+
+                        <td style="max-width: 250px;">
+                            <span class="text-secondary small">{{ leave.reason|default:"-"|truncatechars:50 }}</span>
+                        </td>
+
+                        <td class="text-center">
+                            {% if leave.end_date < today %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary px-3 py-2 rounded-pill">
+                                    Completed
+                                </span>
+                            {% elif leave.start_date > today %}
+                                <span class="badge bg-info bg-opacity-10 text-info border border-info px-3 py-2 rounded-pill">
+                                    Upcoming
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 rounded-pill">
+                                    ● On Leave
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="opacity-50">
+                                <i class="bi bi-filter-circle fs-1 text-muted"></i>
+                                <p class="mt-2 text-muted fw-bold">No leave records found for this selection.</p>
+                                <a href="{% url 'staff_leave_history' %}" class="btn btn-sm btn-outline-primary mt-2">Clear Filter</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

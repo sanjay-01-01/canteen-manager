@@ -19,4 +19,7 @@ urlpatterns = [
     path('add-daily-entry/', views.add_daily_entry, name='add_daily_entry'),
     path('add-consumption/', views.add_consumption, name='add_consumption'),
     path('report/consumption/', views.consumption_report, name='consumption_report'),
+    path('canteen/<int:canteen_id>/download-excel/', views.export_canteen_excel, name='export_canteen_excel'),
+    path('staff/apply-leave/', views.apply_leave, name='apply_leave'),
+    path('staff/leave-history/', views.staff_leave_history, name='staff_leave_history'),
 ]

@@ -2,6 +2,7 @@ from django import forms
 from .models import SalaryPayment
 from .models import SalaryPayment, Expense, Canteen
 from .models import DailyEntry
+from .models import StaffLeave
 
 class SalaryPaymentForm(forms.ModelForm):
     class Meta:
@@ -64,4 +65,21 @@ class ConsumptionForm(forms.ModelForm):
             'normal_token_qty': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0'}),
             'special_token_qty': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0'}),
             'guest_token_qty': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0'}),
+        }
+
+
+# management/forms.py
+
+  # Upar import me StaffLeave add karna na bhulein
+
+class StaffLeaveForm(forms.ModelForm):
+    class Meta:
+        model = StaffLeave
+        fields = ['staff', 'start_date', 'end_date', 'reason']
+        
+        widgets = {
+            'staff': forms.Select(attrs={'class': 'form-select'}),
+            'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Reason for leave...'}),
         }

@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
-from django.db.models import Sum
+from django.db.models import Sum , F
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from datetime import date, timedelta
@@ -8,9 +8,13 @@ import datetime # Date parsing ke liye zaroori
 from dateutil.relativedelta import relativedelta
 import csv
 import json
-# Models & Forms Import
+from datetime import date
 from .models import Canteen, Expense, Staff, SalaryPayment, StaffLeave, DailyEntry
 from .forms import SalaryPaymentForm, ExpenseForm, DailyEntryForm , ConsumptionForm
+import openpyxl 
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter  # <--- Ye line add karein
+from .forms import StaffLeaveForm
 
 # ==========================================
 # 1. डैशबोर्ड (Home Dashboard)
@@ -117,42 +121,46 @@ def canteen_summary_report(request, canteen_id):
     # 1. Date Filter
     start_date_str = request.GET.get('start_date')
     end_date_str = request.GET.get('end_date')
-
+    
     today = date.today()
     if start_date_str:
         start_date = datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
     else:
         start_date = today.replace(day=1)
-
+        
     if end_date_str:
         end_date = datetime.datetime.strptime(end_date_str, "%Y-%m-%d").date()
     else:
         end_date = today
 
-    # 2. DATA FETCH
+    # 2. FETCH INCOMES & CALCULATE TOTALS (Annotate)
+    # Yahan hum Python me hi total nikal rahe hain taaki HTML me {% with %} na lagana pade
     incomes = DailyEntry.objects.filter(
         canteen=canteen, 
         date__range=[start_date, end_date]
+    ).annotate(
+        # Income Total
+        total_money=F('cash_received') + F('online_received'),
+        # Food Total
+        total_food=F('tea_qty') + F('nasta_qty') + F('lunch_qty') + F('dinner_qty') + 
+                   F('normal_token_qty') + F('special_token_qty') + F('guest_token_qty')
     ).order_by('-date')
 
-    raw_expenses = Expense.objects.filter(
-        canteen=canteen, 
-        date__range=[start_date, end_date]
-    ).order_by('-date')
+    # 3. FETCH EXPENSES
+    raw_expenses = Expense.objects.filter(canteen=canteen, date__range=[start_date, end_date]).order_by('-date')
 
-    # 3. EXPENSE GROUPING
+    # Group Expenses
     expenses_grouped = {}
     for exp in raw_expenses:
         d = exp.date
         if d not in expenses_grouped:
             expenses_grouped[d] = {'date': d, 'total_amount': 0, 'items': []}
-        
         expenses_grouped[d]['total_amount'] += exp.amount
         expenses_grouped[d]['items'].append(exp)
     
     final_expense_list = list(expenses_grouped.values())
 
-    # 4. TOTALS
+    # 4. OVERALL SUMMARY TOTALS
     consumption_totals = incomes.aggregate(
         total_tea=Sum('tea_qty'), total_nasta=Sum('nasta_qty'),
         total_lunch=Sum('lunch_qty'), total_dinner=Sum('dinner_qty'),
@@ -165,8 +173,7 @@ def canteen_summary_report(request, canteen_id):
     total_expense_sum = raw_expenses.aggregate(Sum('amount'))['amount__sum'] or 0
     net_profit = total_income_sum - total_expense_sum
 
-    # 👇👇 MAGIC FIX: Check logic here (Case-Insensitive) 👇👇
-    # Ye check karega ki spelling choti ho ya badi, agar 'monthly' hai to True kar dega
+    # Token Logic
     show_tokens = False
     if canteen.billing_type and 'monthly' in str(canteen.billing_type).lower():
         show_tokens = True
@@ -181,10 +188,9 @@ def canteen_summary_report(request, canteen_id):
         'net_profit': net_profit,
         'start_date': start_date,
         'end_date': end_date,
-        'show_tokens': show_tokens, # HTML ko batayenge ki token dikhana hai ya nahi
+        'show_tokens': show_tokens,
     }
     return render(request, 'management/canteen_summary_report.html', context)
-
 
 @login_required
 def canteen_detail_report(request, canteen_id, date_str):
@@ -554,3 +560,201 @@ def consumption_report(request):
         'selected_canteen': int(selected_canteen) if selected_canteen else None
     }
     return render(request, 'management/consumption_report.html', context)
+
+
+# management/views.py ke sabse niche paste karein
+
+# management/views.py
+
+@login_required
+def export_canteen_excel(request, canteen_id):
+    canteen = get_object_or_404(Canteen, pk=canteen_id)
+    
+    # 1. DATE FILTER
+    start_date_str = request.GET.get('start_date')
+    end_date_str = request.GET.get('end_date')
+    
+    today = date.today()
+    if start_date_str:
+        start_date = datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
+    else:
+        start_date = today.replace(day=1)
+        
+    if end_date_str:
+        end_date = datetime.datetime.strptime(end_date_str, "%Y-%m-%d").date()
+    else:
+        end_date = today
+
+    # 2. DATA FETCHING
+    incomes = DailyEntry.objects.filter(canteen=canteen, date__range=[start_date, end_date]).order_by('date')
+    expenses = Expense.objects.filter(canteen=canteen, date__range=[start_date, end_date]).order_by('date')
+
+    # Totals Calculate
+    total_income = (incomes.aggregate(Sum('cash_received'))['cash_received__sum'] or 0) + \
+                   (incomes.aggregate(Sum('online_received'))['online_received__sum'] or 0)
+    total_expense = expenses.aggregate(Sum('amount'))['amount__sum'] or 0
+    net_profit = total_income - total_expense
+
+    # 3. EXCEL WORKBOOK SETUP
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Report"
+
+    # --- STYLES ---
+    bold_font = Font(bold=True, size=12)
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="4F81BD", end_color="4F81BD", fill_type="solid") 
+    center_align = Alignment(horizontal="center")
+    currency_format = '#,##0'
+
+    # --- A. REPORT HEADER ---
+    ws.merge_cells('A1:G1')
+    ws['A1'] = f"CANTEEN REPORT: {canteen.name.upper()}"
+    ws['A1'].font = Font(bold=True, size=16, color="000000")
+    ws['A1'].alignment = center_align
+
+    ws.merge_cells('A2:G2')
+    ws['A2'] = f"Period: {start_date} to {end_date}"
+    ws['A2'].alignment = center_align
+
+    # --- B. FINANCIAL SUMMARY BOX ---
+    ws['A4'] = "FINANCIAL SUMMARY"
+    ws['A4'].font = bold_font
+    
+    headers = ["Total Income", "Total Expense", "NET PROFIT"]
+    values = [total_income, total_expense, net_profit]
+
+    ws.append([]) 
+    ws.append(headers)
+    ws.append(values)
+
+    # Styling Summary
+    for col_num, cell in enumerate(ws[6], 1): # Header Row
+        cell.font = Font(bold=True, color="FFFFFF")
+        if col_num == 1: cell.fill = PatternFill(start_color="28a745", fill_type="solid") # Green
+        elif col_num == 2: cell.fill = PatternFill(start_color="dc3545", fill_type="solid") # Red
+        elif col_num == 3: cell.fill = PatternFill(start_color="007bff", fill_type="solid") # Blue
+        cell.alignment = center_align
+
+    for cell in ws[7]: # Value Row
+        cell.font = Font(bold=True, size=12)
+        cell.number_format = currency_format
+        cell.alignment = center_align
+
+    ws.append([]) 
+    ws.append([]) 
+
+    # --- C. DAILY CONSUMPTION & INCOME ---
+    ws.append(["DAILY INCOME & CONSUMPTION DETAILS"])
+    ws[ws.max_row][0].font = bold_font
+
+    columns = ['Date', 'Tea', 'Nasta', 'Lunch', 'Dinner', 'Cash (₹)', 'Online (₹)']
+    
+    show_tokens = False
+    if canteen.billing_type and 'monthly' in str(canteen.billing_type).lower():
+        show_tokens = True
+        columns.extend(['Normal Token', 'Special Token', 'Guest Token'])
+    
+    ws.append(columns)
+
+    for cell in ws[ws.max_row]:
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = center_align
+
+    for row in incomes:
+        data = [
+            row.date,
+            row.tea_qty, row.nasta_qty, row.lunch_qty, row.dinner_qty,
+            row.cash_received, row.online_received
+        ]
+        if show_tokens:
+            data.extend([row.normal_token_qty, row.special_token_qty, row.guest_token_qty])
+        
+        ws.append(data)
+
+    ws.append([]) 
+    ws.append([]) 
+
+    # --- D. EXPENSE DETAILS ---
+    ws.append(["DETAILED EXPENSES"])
+    ws[ws.max_row][0].font = bold_font
+
+    exp_columns = ['Date', 'Category', 'Description', 'Amount (₹)']
+    ws.append(exp_columns)
+    
+    exp_header_fill = PatternFill(start_color="C0504D", fill_type="solid")
+    for cell in ws[ws.max_row]:
+        cell.font = header_font
+        cell.fill = exp_header_fill
+        cell.alignment = center_align
+
+    for exp in expenses:
+        ws.append([exp.date, exp.category, exp.description, exp.amount])
+
+    # --- AUTO-ADJUST COLUMN WIDTH (FIXED LOGIC) ---
+    # Hum enumerate use karenge taaki column index mil sake (1, 2, 3...)
+    for i, col in enumerate(ws.columns, 1):
+        max_length = 0
+        
+        # FIX: Cell se puchhne ke bajaye, hum helper function se letter nikalenge
+        column_letter = get_column_letter(i) 
+        
+        for cell in col:
+            try:
+                if cell.value:
+                    val_len = len(str(cell.value))
+                    if val_len > max_length:
+                        max_length = val_len
+            except:
+                pass
+        
+        adjusted_width = (max_length + 2)
+        # Width set karte waqt sahi letter use karenge
+        ws.column_dimensions[column_letter].width = adjusted_width
+
+    # 4. RESPONSE
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    filename = f"{canteen.name}_Report_{start_date}_to_{end_date}.xlsx"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    wb.save(response)
+    return response
+
+@login_required
+def apply_leave(request):
+    if request.method == 'POST':
+        form = StaffLeaveForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Leave Applied Successfully! ✅")
+            return redirect('home_dashboard')
+    else:
+        form = StaffLeaveForm()
+    
+    return render(request, 'management/apply_leave.html', {'form': form})
+
+# management/views.py
+
+# management/views.py
+
+@login_required
+def staff_leave_history(request):
+    # 1. Default: Saare leaves nikalo (Latest pehle)
+    leaves = StaffLeave.objects.select_related('staff').all().order_by('-start_date')
+    
+    # 2. Filter Logic (Agar user ne staff select kiya hai)
+    staff_id = request.GET.get('staff') # URL se ID layega
+    if staff_id:
+        leaves = leaves.filter(staff_id=staff_id)
+    
+    # 3. Dropdown ke liye saare staff members
+    all_staff = Staff.objects.all()
+
+    context = {
+        'leaves': leaves,
+        'all_staff': all_staff, # Dropdown list
+        'selected_staff_id': int(staff_id) if staff_id else None, # Selected rakhne ke liye
+        'today': date.today()
+    }
+    return render(request, 'management/staff_leave_history.html', context)
