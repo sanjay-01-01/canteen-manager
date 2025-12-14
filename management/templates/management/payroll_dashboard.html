@@ -5,44 +5,62 @@
 
 {% block content %}
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-dark">💰 Payroll: {{ month_name }} {{ year }}</h2>
+    
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">💰 Payroll: {{ month_name }} {{ year }}</h2>
+            <span class="badge bg-secondary">Total Days in Month: {{ payroll_data.0.total_days }}</span>
+        </div>
         
-        <form class="d-flex gap-2">
-            <select name="month" class="form-select">
-                <option value="1">January</option>
-                <option value="12" selected>December</option>
-                </select>
-            <input type="number" name="year" value="{{ year }}" class="form-control" style="width: 80px;">
-            <button class="btn btn-primary">Go</button>
+        <form class="d-flex gap-2 bg-white p-2 rounded shadow-sm border">
+            <select name="month" class="form-select border-0 bg-light fw-bold">
+                <option value="1" {% if month == 1 %}selected{% endif %}>January</option>
+                <option value="2" {% if month == 2 %}selected{% endif %}>February</option>
+                <option value="3" {% if month == 3 %}selected{% endif %}>March</option>
+                <option value="4" {% if month == 4 %}selected{% endif %}>April</option>
+                <option value="5" {% if month == 5 %}selected{% endif %}>May</option>
+                <option value="6" {% if month == 6 %}selected{% endif %}>June</option>
+                <option value="7" {% if month == 7 %}selected{% endif %}>July</option>
+                <option value="8" {% if month == 8 %}selected{% endif %}>August</option>
+                <option value="9" {% if month == 9 %}selected{% endif %}>September</option>
+                <option value="10" {% if month == 10 %}selected{% endif %}>October</option>
+                <option value="11" {% if month == 11 %}selected{% endif %}>November</option>
+                <option value="12" {% if month == 12 %}selected{% endif %}>December</option>
+            </select>
+            <input type="number" name="year" value="{{ year }}" class="form-control border-0 bg-light fw-bold" style="width: 80px;">
+            <button class="btn btn-primary fw-bold">Go</button>
         </form>
     </div>
 
-    <div class="card shadow-sm border-0">
+    <div class="card shadow-sm border-0 rounded-3 overflow-hidden">
         <div class="table-responsive">
             <table class="table table-hover align-middle text-center mb-0">
                 <thead class="bg-dark text-white">
                     <tr>
-                        <th class="text-start ps-4">Staff Name</th>
-                        <th>Base Salary</th>
-                        <th>Per Day</th>
-                        <th>Unpaid Leave (Days)</th>
-                        <th>Deduction (-)</th>
-                        <th class="bg-success text-white">Net Salary</th>
+                        <th class="text-start ps-4 py-3">Staff Name</th>
+                        <th class="py-3">Monthly Salary</th>
+                        <th class="py-3 bg-secondary bg-opacity-25">Per Day</th> <th class="py-3">Unpaid Leaves</th>
+                        <th class="py-3 text-danger">Deduction</th>
+                        <th class="py-3 bg-success text-white">Net Payable</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for p in payroll_data %}
                     <tr>
-                        <td class="text-start ps-4 fw-bold">{{ p.staff.name }}</td>
-                        <td>₹{{ p.base_salary|intcomma }}</td>
-                        <td class="text-muted small">₹{{ p.per_day }}</td>
+                        <td class="text-start ps-4 fw-bold text-dark">{{ p.staff.name }}</td>
+                        
+                        <td class="fw-bold text-secondary">₹{{ p.base_salary|intcomma }}</td>
+                        
+                        <td class="small text-muted bg-light">
+                            ₹{{ p.base_salary|intcomma }} ÷ {{ p.total_days }} <br>
+                            = <b>₹{{ p.per_day }}</b>
+                        </td>
                         
                         <td>
                             {% if p.unpaid_leaves > 0 %}
-                                <span class="badge bg-danger">{{ p.unpaid_leaves }} Days</span>
+                                <span class="badge bg-danger rounded-pill px-3">{{ p.unpaid_leaves }} Days</span>
                             {% else %}
-                                -
+                                <span class="text-muted opacity-25">-</span>
                             {% endif %}
                         </td>
 
@@ -54,10 +72,12 @@
                             {% endif %}
                         </td>
 
-                        <td class="fw-bold text-success fs-5">₹{{ p.net_salary|intcomma }}</td>
+                        <td class="bg-success bg-opacity-10">
+                            <h5 class="fw-bold text-success mb-0">₹{{ p.net_salary|intcomma }}</h5>
+                        </td>
                     </tr>
                     {% empty %}
-                    <tr><td colspan="6" class="py-5">No staff found.</td></tr>
+                    <tr><td colspan="6" class="py-5 text-muted">No staff found based on your filter.</td></tr>
                     {% endfor %}
                 </tbody>
             </table>
