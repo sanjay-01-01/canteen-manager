@@ -65,7 +65,7 @@ class Staff(models.Model):
     photo = models.ImageField(upload_to='staff_photos/', null=True, blank=True, verbose_name="Staff Photo")
     aadhar_card = models.ImageField(upload_to='staff_aadhar/', null=True, blank=True, verbose_name="Aadhar Card Photo")
     # ----------------------
-
+    
     def __str__(self):
         return f"{self.name} ({self.role}) - {self.canteen.name if self.canteen else 'Unassigned'}"
 
@@ -84,11 +84,10 @@ class StaffLeave(models.Model):
 
     # छुट्टी शुरू होने की तारीख
     start_date = models.DateField(verbose_name="Start Date")
-
     # छुट्टी समाप्त होने की तारीख
     end_date = models.DateField(verbose_name="End Date")
-
     reason = models.TextField(null=True, blank=True, verbose_name="Reason for Leave")
+    is_paid_leave = models.BooleanField(default=False, verbose_name="Paid Leave (Don't Cut Salary)")
 
     def total_days(self):
         """Calculates the total number of days in the leave period (inclusive)"""
@@ -101,6 +100,7 @@ class StaffLeave(models.Model):
     total_days.short_description = 'Total Days' # एडमिन पैनल में दिखने वाला नाम
 
     def __str__(self):
+        status = "Paid" if self.is_paid_leave else "Unpaid"
         return f"{self.staff.name} - {self.start_date} to {self.end_date}"
 
     class Meta:
@@ -242,5 +242,25 @@ class DailyEntry(models.Model):
         verbose_name_plural = "Daily Entries"
         unique_together = ('canteen', 'date') # एक कैंटीन में एक दिन में सिर्फ एक एंट्री
         ordering = ['-date', 'canteen__name']
+
+class Payroll(models.Model):
+    staff = models.ForeignKey(Staff, on_delete=models.CASCADE)
+    month = models.DateField() # Sirf month aur year store karenge (e.g., 1st Dec 2025)
+    total_days = models.IntegerField(default=30)
+    working_days = models.IntegerField(default=0)
+    
+    # Leaves breakdown
+    paid_leaves = models.IntegerField(default=0)
+    unpaid_leaves = models.IntegerField(default=0)
+    
+    # Money breakdown
+    base_salary = models.DecimalField(max_digits=10, decimal_places=2)
+    deduction_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    net_salary = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    generated_on = models.DateField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Payslip: {self.staff.name} - {self.month.strftime('%B %Y')}"
 
 

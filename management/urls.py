@@ -22,4 +22,5 @@ urlpatterns = [
     path('canteen/<int:canteen_id>/download-excel/', views.export_canteen_excel, name='export_canteen_excel'),
     path('staff/apply-leave/', views.apply_leave, name='apply_leave'),
     path('staff/leave-history/', views.staff_leave_history, name='staff_leave_history'),
+    path('payroll/', views.generate_payroll, name='generate_payroll'),
 ]

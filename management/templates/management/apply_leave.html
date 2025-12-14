@@ -11,7 +11,7 @@
         <div class="card-body p-4">
             <form method="POST">
                 {% csrf_token %}
-                
+
                 <div class="mb-3">
                     <label class="fw-bold small text-muted">Select Staff</label>
                     {{ form.staff }}
@@ -32,7 +32,12 @@
                     <label class="fw-bold small text-muted">Reason</label>
                     {{ form.reason }}
                 </div>
-
+                <div class="mb-4 form-check">
+                    {{ form.is_paid_leave }}
+                    <label class="form-check-label fw-bold text-success" for="{{ form.is_paid_leave.id_for_label }}">
+                        Mark as Paid Leave? (Salary Nahi Kategi)
+                    </label>
+                </div>
                 <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-warning fw-bold text-dark py-2">Submit Leave</button>
                     <a href="{% url 'staff_list' %}" class="btn btn-light border py-2">Cancel</a>

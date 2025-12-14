@@ -72,14 +72,18 @@ class ConsumptionForm(forms.ModelForm):
 
   # Upar import me StaffLeave add karna na bhulein
 
+# management/forms.py
+
 class StaffLeaveForm(forms.ModelForm):
     class Meta:
         model = StaffLeave
-        fields = ['staff', 'start_date', 'end_date', 'reason']
+        # 'is_paid_leave' field add karein 👇
+        fields = ['staff', 'start_date', 'end_date', 'reason', 'is_paid_leave']
         
         widgets = {
             'staff': forms.Select(attrs={'class': 'form-select'}),
             'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Reason for leave...'}),
+            'reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            # Checkbox ke liye alag widget ki zarurat nahi, Django default checkbox dega
         }

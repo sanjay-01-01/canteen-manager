@@ -15,6 +15,8 @@ import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter  # <--- Ye line add karein
 from .forms import StaffLeaveForm
+import calendar
+from django.db.models import Count, Q
 
 # ==========================================
 # 1. डैशबोर्ड (Home Dashboard)
@@ -758,3 +760,85 @@ def staff_leave_history(request):
         'today': date.today()
     }
     return render(request, 'management/staff_leave_history.html', context)
+
+
+@login_required
+def generate_payroll(request):
+    # Default: Current Month
+    today = date.today()
+    selected_month = request.GET.get('month', today.month)
+    selected_year = request.GET.get('year', today.year)
+    
+    selected_month = int(selected_month)
+    selected_year = int(selected_year)
+
+    # 1. Mahine ke total din nikalo (28, 30, ya 31)
+    _, num_days = calendar.monthrange(selected_year, selected_month)
+    
+    payroll_data = []
+    
+    all_staff = Staff.objects.all()
+    
+    for staff in all_staff:
+        # Salary Calculation Logic
+        
+        # A. Total Unpaid Leaves Count karo
+        # Hum filter karenge: Staff wahi ho + Mahina/Saal wahi ho + Paid Leave FALSE ho
+        unpaid_leaves_count = 0
+        leaves = StaffLeave.objects.filter(
+            staff=staff, 
+            start_date__year=selected_year, 
+            start_date__month=selected_month,
+            is_paid_leave=False  # <--- SIRF UNPAID GINO
+        )
+        
+        for leave in leaves:
+            # Leave duration nikalo (End - Start + 1)
+            duration = (leave.end_date - leave.start_date).days + 1
+            unpaid_leaves_count += duration
+
+        # B. Paid Leaves Count (Just for info)
+        paid_leaves_count = 0
+        p_leaves = StaffLeave.objects.filter(
+            staff=staff, 
+            start_date__year=selected_year, 
+            start_date__month=selected_month,
+            is_paid_leave=True   # <--- PAID VALI
+        )
+        for pl in p_leaves:
+            duration = (pl.end_date - pl.start_date).days + 1
+            paid_leaves_count += duration
+
+        # C. Calculation 🧮
+        # Per Day Salary = Monthly / Total Days (e.g. 15000 / 30 = 500)
+        if num_days > 0:
+            per_day_salary = staff.monthly_salary / num_days
+        else:
+            per_day_salary = 0
+            
+        deduction = unpaid_leaves_count * per_day_salary
+        net_salary = staff.monthly_salary - deduction
+        
+        # Working Days (Present)
+        present_days = num_days - unpaid_leaves_count 
+        # Note: Paid leave ko hum working day hi mante hain salary ke hisab se
+
+        payroll_data.append({
+            'staff': staff,
+            'total_days': num_days,
+            'present_days': present_days,
+            'paid_leaves': paid_leaves_count,
+            'unpaid_leaves': unpaid_leaves_count,
+            'per_day': round(per_day_salary, 2),
+            'base_salary': staff.monthly_salary,
+            'deduction': round(deduction, 2),
+            'net_salary': round(net_salary, 2)
+        })
+
+    context = {
+        'payroll_data': payroll_data,
+        'month': selected_month,
+        'year': selected_year,
+        'month_name': calendar.month_name[selected_month]
+    }
+    return render(request, 'management/payroll_dashboard.html', context)
