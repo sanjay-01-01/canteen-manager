@@ -1,9 +1,11 @@
 {% extends 'base.html' %}
 
+{% block title %}Add Daily Entry{% endblock %}
+
 {% block content %}
 <div class="container mt-5" style="max-width: 500px;">
-    <div class="card shadow border-0">
-        <div class="card-header bg-success text-white">
+    <div class="card shadow border-0 rounded-4">
+        <div class="card-header bg-success text-white py-3">
             <h5 class="mb-0 fw-bold">💰 Add Daily Income (Galla)</h5>
         </div>
         <div class="card-body p-4">
@@ -11,29 +13,33 @@
                 {% csrf_token %}
                 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Date</label>
+                    <label class="form-label fw-bold small text-muted">DATE</label>
                     {{ form.date }}
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-bold">Canteen</label>
+                <div class="mb-4">
+                    <label class="form-label fw-bold small text-muted">CANTEEN</label>
                     {{ form.canteen }}
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
+                <hr class="text-muted opacity-25">
+
+                <h6 class="text-success fw-bold mb-3"><i class="bi bi-cash-stack"></i> Total Collection</h6>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
                         <label class="form-label fw-bold text-success">💵 Cash</label>
                         {{ form.cash_received }}
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold text-primary">📱 Online (UPI)</label>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold text-primary">📱 Online</label>
                         {{ form.online_received }}
                     </div>
                 </div>
 
-                <div class="d-grid gap-2 mt-3">
-                    <button type="submit" class="btn btn-success fw-bold">Save Income</button>
-                    <a href="{% url 'home_dashboard' %}" class="btn btn-light border">Cancel</a>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-success fw-bold py-2">✅ Save Income</button>
+                    <a href="{% url 'home_dashboard' %}" class="btn btn-light border py-2">Cancel</a>
                 </div>
             </form>
         </div>

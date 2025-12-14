@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Consumption Entry{% endblock %}
+
+{% block content %}
+<div class="container mt-5 mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-primary text-white p-4" style="background: linear-gradient(135deg, #0d6efd, #0a58ca);">
+                    <div class="d-flex align-items-center text-center justify-content-center">
+                        <i class="bi bi-cup-hot-fill fs-1 me-3 opacity-75"></i>
+                        <div>
+                            <h4 class="mb-0 fw-bold">Consumption Entry</h4>
+                            <p class="mb-0 small opacity-75">Record daily consumption & tokens</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body p-5 bg-light bg-opacity-25">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row g-4 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Date</label>
+                                <div class="input-group shadow-sm">
+                                    <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-calendar-event"></i></span>
+                                    {{ form.date }}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted small text-uppercase">Select Canteen</label>
+                                <div class="input-group shadow-sm">
+                                    <span class="input-group-text bg-white text-muted border-end-0"><i class="bi bi-building"></i></span>
+                                    {{ form.canteen }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4 text-muted opacity-25">
+
+                        <div id="daily-section" class="mb-4">
+                            <h6 class="text-primary fw-bold mb-3"><i class="bi bi-basket3-fill me-2"></i>Daily Items (Cash/UPI)</h6>
+                            <div class="p-4 bg-white rounded-3 shadow-sm border">
+                                <div class="row g-3">
+                                    <div class="col-6 col-sm-3 text-center">
+                                        <label class="form-label small fw-bold text-muted d-block">Tea ☕</label>
+                                        {{ form.tea_qty }}
+                                    </div>
+                                    <div class="col-6 col-sm-3 text-center">
+                                        <label class="form-label small fw-bold text-muted d-block">Nasta 🍞</label>
+                                        {{ form.nasta_qty }}
+                                    </div>
+                                    <div class="col-6 col-sm-3 text-center">
+                                        <label class="form-label small fw-bold text-muted d-block">Lunch 🍛</label>
+                                        {{ form.lunch_qty }}
+                                    </div>
+                                    <div class="col-6 col-sm-3 text-center">
+                                        <label class="form-label small fw-bold text-muted d-block">Dinner 🍲</label>
+                                        {{ form.dinner_qty }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="monthly-section" style="display: none;">
+                            <h6 class="text-danger fw-bold mb-3"><i class="bi bi-ticket-detailed-fill me-2"></i>Monthly Tokens</h6>
+                            <div class="p-4 bg-danger bg-opacity-10 rounded-3 shadow-sm border border-danger border-opacity-25">
+                                <div class="row g-3 justify-content-center">
+                                    <div class="col-4 text-center">
+                                        <label class="form-label small fw-bold text-danger d-block">Normal</label>
+                                        {{ form.normal_token_qty }}
+                                    </div>
+                                    <div class="col-4 text-center">
+                                        <label class="form-label small fw-bold text-danger d-block">Special</label>
+                                        {{ form.special_token_qty }}
+                                    </div>
+                                    <div class="col-4 text-center">
+                                        <label class="form-label small fw-bold text-danger d-block">Guest</label>
+                                        {{ form.guest_token_qty }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-5">
+                            <a href="{% url 'home_dashboard' %}" class="btn btn-outline-secondary btn-lg px-4 fw-bold order-md-1">Cancel</a>
+                            <button type="submit" class="btn btn-primary btn-lg px-5 fw-bold shadow-sm order-md-2"><i class="bi bi-check2-circle me-2"></i>Save Entry</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const canteenTypes = JSON.parse('{{ canteen_types_json|escapejs }}');
+        const canteenSelect = document.getElementById('id_canteen') || document.querySelector('select[name="canteen"]');
+        const dailySection = document.getElementById('daily-section');
+        const monthlySection = document.getElementById('monthly-section');
+
+        function toggleFields() {
+            if (!canteenSelect) return;
+
+            const selectedId = canteenSelect.value;
+            const type = canteenTypes[selectedId]; 
+            
+            // Daily section hamesha dikhega
+            dailySection.style.display = 'block'; 
+
+            // Check for Monthly type (case-insensitive)
+            if (type && type.toString().toLowerCase().includes('monthly')) {
+                monthlySection.style.display = 'block';
+            } else {
+                monthlySection.style.display = 'none';
+            }
+        }
+
+        if (canteenSelect) {
+            canteenSelect.addEventListener('change', toggleFields);
+            toggleFields(); // Page load par initial state set karein
+        }
+    });
+</script>
+
+<style>
+    .input-group-text {
+        background-color: #f8f9fa;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    /* Center placeholders in quantity inputs for better look */
+    input[type=number]::placeholder {
+        text-align: center;
+    }
+</style>
+{% endblock %}

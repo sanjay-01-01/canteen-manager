@@ -27,13 +27,41 @@ class ExpenseForm(forms.ModelForm):
             'canteen': forms.Select(attrs={'class': 'form-select'}),
         }
 
+
+# management/forms.py
+
 class DailyEntryForm(forms.ModelForm):
     class Meta:
         model = DailyEntry
+        # Sirf Date, Canteen aur Paisa rakha hai (No Nasta)
         fields = ['date', 'canteen', 'cash_received', 'online_received']
+        
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'canteen': forms.Select(attrs={'class': 'form-select'}),
             'cash_received': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '₹ Cash Galla'}),
             'online_received': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '₹ UPI/Online'}),
+        }
+
+# management/forms.py (Add at bottom)
+
+class ConsumptionForm(forms.ModelForm):
+    class Meta:
+        model = DailyEntry
+        fields = ['date', 'canteen', 'tea_qty', 'lunch_qty', 'dinner_qty', 'nasta_qty', 'normal_token_qty', 'special_token_qty', 'guest_token_qty']
+        
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'canteen': forms.Select(attrs={'class': 'form-select', 'id': 'canteen_select'}), # ID diya hai JS ke liye
+            
+            # Khana
+            'tea_qty': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0'}),
+            'lunch_qty': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0'}),
+            'dinner_qty': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0'}),
+            'nasta_qty': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0'}),
+            
+            # Tokens
+            'normal_token_qty': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0'}),
+            'special_token_qty': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0'}),
+            'guest_token_qty': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0'}),
         }

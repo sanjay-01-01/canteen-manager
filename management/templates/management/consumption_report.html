@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block title %}Consumption Report{% endblock %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    
+    <div class="card shadow-sm border-0 mb-4 rounded-4">
+        <div class="card-body p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold text-primary mb-0"><i class="bi bi-pie-chart-fill me-2"></i>Consumption Report</h4>
+            </div>
+            
+            <form method="GET" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted">Start Date</label>
+                    <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="small fw-bold text-muted">End Date</label>
+                    <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="small fw-bold text-muted">Select Canteen</label>
+                    <select name="canteen" class="form-select">
+                        <option value="">-- All Canteens --</option>
+                        {% for c in all_canteens %}
+                            <option value="{{ c.id }}" {% if selected_canteen == c.id %}selected{% endif %}>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-dark w-100 fw-bold"><i class="bi bi-filter"></i> Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+            <div class="card bg-warning bg-opacity-10 border-warning h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-warning fw-bold">TOTAL TEA ☕</h6>
+                    <h3 class="fw-bold text-dark">{{ totals.total_tea|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card bg-info bg-opacity-10 border-info h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-info fw-bold">TOTAL NASTA 🍞</h6>
+                    <h3 class="fw-bold text-dark">{{ totals.total_nasta|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card bg-success bg-opacity-10 border-success h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-success fw-bold">TOTAL LUNCH 🍛</h6>
+                    <h3 class="fw-bold text-dark">{{ totals.total_lunch|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6">
+            <div class="card bg-primary bg-opacity-10 border-primary h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-primary fw-bold">TOTAL DINNER 🍲</h6>
+                    <h3 class="fw-bold text-dark">{{ totals.total_dinner|default:0 }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if totals.total_normal > 0 or totals.total_special > 0 %}
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card bg-danger bg-opacity-10 border-danger text-center py-2">
+                <small class="fw-bold text-danger">NORMAL TOKENS</small>
+                <h4 class="fw-bold">{{ totals.total_normal|default:0 }}</h4>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-danger bg-opacity-10 border-danger text-center py-2">
+                <small class="fw-bold text-danger">SPECIAL TOKENS</small>
+                <h4 class="fw-bold">{{ totals.total_special|default:0 }}</h4>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-danger bg-opacity-10 border-danger text-center py-2">
+                <small class="fw-bold text-danger">GUEST TOKENS</small>
+                <h4 class="fw-bold">{{ totals.total_guest|default:0 }}</h4>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card shadow-sm border-0 overflow-hidden">
+        <div class="card-header bg-light py-3">
+            <h6 class="mb-0 fw-bold">📅 Date-wise Breakdown</h6>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-center">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="text-start ps-4">Date</th>
+                        <th class="text-start">Canteen</th>
+                        <th>Tea</th>
+                        <th>Nasta</th>
+                        <th>Lunch</th>
+                        <th>Dinner</th>
+                        <th class="border-start border-secondary">Tokens (N/S/G)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in entries %}
+                    <tr>
+                        <td class="text-start ps-4 fw-bold text-muted">{{ row.date|date:"d M, Y" }}</td>
+                        <td class="text-start"><span class="badge bg-secondary">{{ row.canteen.name }}</span></td>
+                        
+                        <td class="fw-bold text-warning">{{ row.tea_qty|default:"-" }}</td>
+                        <td class="fw-bold text-info">{{ row.nasta_qty|default:"-" }}</td>
+                        <td class="fw-bold text-success">{{ row.lunch_qty|default:"-" }}</td>
+                        <td class="fw-bold text-primary">{{ row.dinner_qty|default:"-" }}</td>
+                        
+                        <td class="border-start small text-muted">
+                            {% if row.normal_token_qty or row.special_token_qty or row.guest_token_qty %}
+                                {{ row.normal_token_qty }} / {{ row.special_token_qty }} / {{ row.guest_token_qty }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">No entries found for this period.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

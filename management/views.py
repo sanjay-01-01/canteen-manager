@@ -7,21 +7,37 @@ from datetime import date, timedelta
 import datetime # Date parsing ke liye zaroori
 from dateutil.relativedelta import relativedelta
 import csv
-
+import json
 # Models & Forms Import
 from .models import Canteen, Expense, Staff, SalaryPayment, StaffLeave, DailyEntry
-from .forms import SalaryPaymentForm, ExpenseForm, DailyEntryForm
+from .forms import SalaryPaymentForm, ExpenseForm, DailyEntryForm , ConsumptionForm
 
 # ==========================================
 # 1. डैशबोर्ड (Home Dashboard)
 # ==========================================
+# management/views.py
+
 @login_required
 def home_dashboard(request):
-    today = date.today()
+    # --- 1. Date Filter Logic (Professional) ---
+    filter_date_str = request.GET.get('filter_date') # HTML se date layega (YYYY-MM)
+    
+    if filter_date_str:
+        # Agar user ne filter lagaya hai
+        try:
+            year, month = map(int, filter_date_str.split('-'))
+            today = date(year, month, 1) # Us mahine ki 1st tarikh
+        except ValueError:
+            today = date.today()
+    else:
+        # Default: Aaj ka din
+        today = date.today()
+
+    # Is mahine ki range nikalo (1st to Last date)
     first_day_of_month = today.replace(day=1)
     last_day_of_month = first_day_of_month + relativedelta(months=1) - timedelta(days=1)
 
-    # --- Expense & Salary ---
+    # --- 2. Expense & Salary Calculation ---
     monthly_expenses_sum = Expense.objects.filter(
         date__gte=first_day_of_month,
         date__lte=last_day_of_month
@@ -34,7 +50,7 @@ def home_dashboard(request):
 
     total_outflow = monthly_expenses_sum + monthly_salary_paid
 
-    # --- Income ---
+    # --- 3. Income Calculation ---
     income_entries = DailyEntry.objects.filter(
         date__gte=first_day_of_month,
         date__lte=last_day_of_month
@@ -44,10 +60,10 @@ def home_dashboard(request):
     total_online = income_entries.aggregate(total=Sum('online_received'))['total'] or 0
     total_income = total_cash + total_online 
 
-    # --- Net Profit ---
+    # --- 4. Net Profit ---
     net_profit = total_income - total_outflow
 
-    # --- Charts Data ---
+    # --- 5. Charts Data ---
     expense_categories = Expense.objects.filter(
         date__gte=first_day_of_month,
         date__lte=last_day_of_month
@@ -70,7 +86,8 @@ def home_dashboard(request):
     total_staff = Staff.objects.count()
 
     context = {
-        'current_month': today.strftime("%B %Y"),
+        'current_month': today.strftime("%B %Y"), # Heading ke liye (e.g. December 2025)
+        'filter_date': today.strftime("%Y-%m"),   # Input box me value rakhne ke liye
         'total_canteens': total_canteens,
         'total_staff': total_staff,
         'all_canteens': all_canteens,
@@ -87,11 +104,17 @@ def home_dashboard(request):
 # ==========================================
 # 2. कैंटीन रिपोर्टिंग (Summary & Detailed)
 # ==========================================
+# management/views.py
+
+# management/views.py
+
+# management/views.py
+
 @login_required
 def canteen_summary_report(request, canteen_id):
     canteen = get_object_or_404(Canteen, pk=canteen_id)
     
-    # Date Filter
+    # 1. Date Filter
     start_date_str = request.GET.get('start_date')
     end_date_str = request.GET.get('end_date')
 
@@ -106,12 +129,18 @@ def canteen_summary_report(request, canteen_id):
     else:
         end_date = today
 
-    # --- EXPENSE GROUPING ---
+    # 2. DATA FETCH
+    incomes = DailyEntry.objects.filter(
+        canteen=canteen, 
+        date__range=[start_date, end_date]
+    ).order_by('-date')
+
     raw_expenses = Expense.objects.filter(
         canteen=canteen, 
         date__range=[start_date, end_date]
     ).order_by('-date')
 
+    # 3. EXPENSE GROUPING
     expenses_grouped = {}
     for exp in raw_expenses:
         d = exp.date
@@ -123,41 +152,39 @@ def canteen_summary_report(request, canteen_id):
     
     final_expense_list = list(expenses_grouped.values())
 
-    # --- INCOME GROUPING ---
-    raw_incomes = DailyEntry.objects.filter(
-        canteen=canteen, 
-        date__range=[start_date, end_date]
-    ).order_by('-date')
+    # 4. TOTALS
+    consumption_totals = incomes.aggregate(
+        total_tea=Sum('tea_qty'), total_nasta=Sum('nasta_qty'),
+        total_lunch=Sum('lunch_qty'), total_dinner=Sum('dinner_qty'),
+        total_normal=Sum('normal_token_qty'), total_special=Sum('special_token_qty'),
+        total_guest=Sum('guest_token_qty'),
+        total_cash=Sum('cash_received'), total_online=Sum('online_received')
+    )
 
-    incomes_grouped = {}
-    for inc in raw_incomes:
-        d = inc.date
-        if d not in incomes_grouped:
-            incomes_grouped[d] = {'date': d, 'total_income': 0, 'cash': 0, 'online': 0}
-        
-        total = inc.cash_received + inc.online_received
-        incomes_grouped[d]['total_income'] += total
-        incomes_grouped[d]['cash'] += inc.cash_received
-        incomes_grouped[d]['online'] += inc.online_received
-
-    final_income_list = list(incomes_grouped.values())
-
-    # --- Grand Totals ---
-    total_income_sum = sum(item['total_income'] for item in final_income_list)
-    total_expense_sum = sum(item['total_amount'] for item in final_expense_list)
+    total_income_sum = (consumption_totals['total_cash'] or 0) + (consumption_totals['total_online'] or 0)
+    total_expense_sum = raw_expenses.aggregate(Sum('amount'))['amount__sum'] or 0
     net_profit = total_income_sum - total_expense_sum
+
+    # 👇👇 MAGIC FIX: Check logic here (Case-Insensitive) 👇👇
+    # Ye check karega ki spelling choti ho ya badi, agar 'monthly' hai to True kar dega
+    show_tokens = False
+    if canteen.billing_type and 'monthly' in str(canteen.billing_type).lower():
+        show_tokens = True
 
     context = {
         'canteen': canteen,
-        'expense_list': final_expense_list,
-        'income_list': final_income_list,
+        'incomes': incomes,
+        'grouped_expenses': final_expense_list,
+        'cons_totals': consumption_totals,
         'total_income': total_income_sum,
         'total_expense': total_expense_sum,
         'net_profit': net_profit,
         'start_date': start_date,
         'end_date': end_date,
+        'show_tokens': show_tokens, # HTML ko batayenge ki token dikhana hai ya nahi
     }
     return render(request, 'management/canteen_summary_report.html', context)
+
 
 @login_required
 def canteen_detail_report(request, canteen_id, date_str):
@@ -456,3 +483,74 @@ def add_daily_entry(request):
         form = DailyEntryForm(initial={'date': date.today()})
 
     return render(request, 'management/add_daily_entry.html', {'form': form})
+
+
+# management/views.py
+
+@login_required
+def add_consumption(request):
+    # 1. Canteen Types ka Data taiyar karein (JS ke liye)
+    all_canteens = Canteen.objects.all()
+    # Ye dictionary banayega: {1: 'Daily', 2: 'Monthly'}
+    canteen_types = {c.id: c.billing_type for c in all_canteens} 
+
+    if request.method == 'POST':
+        canteen_id = request.POST.get('canteen')
+        date_val = request.POST.get('date')
+        
+        # Check karein agar entry pehle se hai to update karein
+        instance = DailyEntry.objects.filter(canteen_id=canteen_id, date=date_val).first()
+        
+        form = ConsumptionForm(request.POST, instance=instance)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Data Updated Successfully! ✅")
+            return redirect('home_dashboard')
+    else:
+        form = ConsumptionForm(initial={'date': date.today()})
+
+    context = {
+        'form': form,
+        'canteen_types_json': json.dumps(canteen_types) # 👈 YE LINE BAHUT ZAROORI HAI
+    }
+    return render(request, 'management/add_consumption.html', context)
+
+
+# management/views.py
+
+@login_required
+def consumption_report(request):
+    # 1. Defaults (Aaj ka mahina)
+    today = date.today()
+    start_date = request.GET.get('start_date', today.replace(day=1).strftime('%Y-%m-%d'))
+    end_date = request.GET.get('end_date', today.strftime('%Y-%m-%d'))
+    selected_canteen = request.GET.get('canteen')
+
+    # 2. Queryset (Data Filter karna)
+    entries = DailyEntry.objects.filter(date__range=[start_date, end_date]).order_by('-date')
+
+    if selected_canteen:
+        entries = entries.filter(canteen_id=selected_canteen)
+
+    # 3. Totals Calculate karna (Magic 🪄)
+    totals = entries.aggregate(
+        total_tea=Sum('tea_qty'),
+        total_nasta=Sum('nasta_qty'),
+        total_lunch=Sum('lunch_qty'),
+        total_dinner=Sum('dinner_qty'),
+        # Tokens
+        total_normal=Sum('normal_token_qty'),
+        total_special=Sum('special_token_qty'),
+        total_guest=Sum('guest_token_qty')
+    )
+
+    # Context bhejna
+    context = {
+        'entries': entries,
+        'totals': totals,
+        'all_canteens': Canteen.objects.all(),
+        'start_date': start_date,
+        'end_date': end_date,
+        'selected_canteen': int(selected_canteen) if selected_canteen else None
+    }
+    return render(request, 'management/consumption_report.html', context)

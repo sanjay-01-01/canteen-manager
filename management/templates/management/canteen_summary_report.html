@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load humanize %}
 
-{% block title %}{{ canteen.name }} - Detailed Report{% endblock %}
+{% block title %}{{ canteen.name }} - Report{% endblock %}
 
 {% block content %}
 <div class="container mt-4 mb-5">
@@ -9,7 +9,7 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
             <h2 class="fw-bold text-dark mb-0">{{ canteen.name }} Report</h2>
-            <p class="text-muted mb-0">Click on any date to see details.</p>
+            <p class="text-muted mb-0">Select a tab below to view details</p>
         </div>
         <form class="d-flex gap-2 bg-white p-2 rounded shadow-sm">
             <input type="date" name="start_date" class="form-control" value="{{ start_date|date:'Y-m-d' }}">
@@ -21,127 +21,221 @@
 
     <div class="row mb-4 text-center g-3">
         <div class="col-md-4">
-            <div class="card bg-success text-white shadow-sm border-0 h-100">
+            <div class="card bg-success text-white shadow border-0 h-100">
                 <div class="card-body py-4">
-                    <h6 class="text-uppercase opacity-75 mb-2">Total Income</h6>
-                    <h2 class="fw-bold mb-0 border-0 text-decoration-none">₹ {{ total_income|intcomma }}</h2>
+                    <h6 class="text-uppercase fw-bold opacity-75 mb-1">Total Income</h6>
+                    <h1 class="fw-bold mb-0 display-6">₹ {{ total_income|intcomma }}</h1>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card bg-danger text-white shadow-sm border-0 h-100">
+            <div class="card bg-danger text-white shadow border-0 h-100">
                 <div class="card-body py-4">
-                    <h6 class="text-uppercase opacity-75 mb-2">Total Expense</h6>
-                    <h2 class="fw-bold mb-0 border-0 text-decoration-none">₹ {{ total_expense|intcomma }}</h2>
+                    <h6 class="text-uppercase fw-bold opacity-75 mb-1">Total Expense</h6>
+                    <h1 class="fw-bold mb-0 display-6">₹ {{ total_expense|intcomma }}</h1>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card {% if net_profit >= 0 %}bg-primary{% else %}bg-dark{% endif %} text-white shadow-sm border-0 h-100">
+            <div class="card bg-primary text-white shadow border-0 h-100">
                 <div class="card-body py-4">
-                    <h6 class="text-uppercase opacity-75 mb-2">Net Profit</h6>
-                    <h2 class="fw-bold mb-0 border-0 text-decoration-none">₹ {{ net_profit|intcomma }}</h2>
+                    <h6 class="text-uppercase fw-bold opacity-75 mb-1">Net Profit</h6>
+                    <h1 class="fw-bold mb-0 display-6">₹ {{ net_profit|intcomma }}</h1>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-success bg-opacity-10 py-3 border-0">
-            <h5 class="mb-0 fw-bold text-success">💰 Income History (Galla)</h5>
+    <ul class="nav nav-pills nav-fill mb-3 gap-2" id="reportTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold border" id="income-tab" data-bs-toggle="pill" data-bs-target="#income" type="button">
+                💰 Income Only
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold border" id="expense-tab" data-bs-toggle="pill" data-bs-target="#expense" type="button">
+                📉 Expense Only
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold border" id="consumption-tab" data-bs-toggle="pill" data-bs-target="#consumption" type="button">
+                🍽️ Consumption History
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="reportTabsContent">
+        
+        <div class="tab-pane fade show active" id="income">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0 fw-bold">Daily Income Report</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-start ps-4">Date</th>
+                                <th class="text-success">Cash Amount</th>
+                                <th class="text-primary">Online/UPI</th>
+                                <th class="text-end pe-4 fw-bold">Total Daily</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in incomes %}
+                            {% with daily_total=row.cash_received|add:row.online_received %}
+                            {% if daily_total > 0 %}
+                            <tr>
+                                <td class="text-start ps-4 fw-bold text-muted">{{ row.date|date:"d M, Y" }}</td>
+                                <td class="text-success">₹{{ row.cash_received|intcomma }}</td>
+                                <td class="text-primary">₹{{ row.online_received|intcomma }}</td>
+                                <td class="text-end pe-4 fw-bold fs-5">
+                                    ₹{{ daily_total|intcomma }}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endwith %}
+                            
+                            {% empty %}
+                            <tr><td colspan="4" class="py-5 text-muted">No income entries found.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 40%;">Date <small class="text-muted fw-normal">(Click to view breakdown)</small></th>
-                        <th class="text-end">Total Income</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in income_list %}
-                    <tr data-bs-toggle="collapse" data-bs-target="#inc-{{ forloop.counter }}" style="cursor: pointer;" class="fw-bold">
-                        <td class="text-muted">
-                            <i class="bi bi-caret-right-fill me-1"></i> {{ row.date|date:"d M, Y" }}
-                        </td>
-                        <td class="text-end text-success">+ ₹{{ row.total_income|intcomma }}</td>
-                    </tr>
-                    
-                    <tr class="collapse bg-light" id="inc-{{ forloop.counter }}">
-                        <td colspan="2" class="p-3">
-                            <div class="row">
-                                <div class="col-md-6 border-end">
-                                    <div class="d-flex justify-content-between">
-                                        <span>💵 Cash Received:</span>
-                                        <strong>₹{{ row.cash|intcomma }}</strong>
+
+        <div class="tab-pane fade" id="expense">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h6 class="mb-0 fw-bold">Date-wise Expense Report</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Date <small class="fw-normal text-muted">(Click to view details)</small></th>
+                                <th class="text-end pe-4">Total Expense</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in grouped_expenses %}
+                            <tr data-bs-toggle="collapse" data-bs-target="#exp-{{ forloop.counter }}" style="cursor: pointer;" class="fw-bold">
+                                <td class="ps-4 text-dark">
+                                    <i class="bi bi-caret-right-fill me-2 text-muted"></i> {{ row.date|date:"d M, Y" }}
+                                </td>
+                                <td class="text-end pe-4 text-danger fs-5">₹{{ row.total_amount|intcomma }}</td>
+                            </tr>
+                            <tr class="collapse bg-light" id="exp-{{ forloop.counter }}">
+                                <td colspan="2" class="p-0">
+                                    <div class="p-3 border-bottom">
+                                        <table class="table table-sm table-borderless mb-0 bg-white rounded shadow-sm">
+                                            <thead>
+                                                <tr class="text-muted small border-bottom">
+                                                    <th class="ps-3">Category</th>
+                                                    <th>Description</th>
+                                                    <th class="text-end pe-3">Cost</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for item in row.items %}
+                                                <tr>
+                                                    <td class="ps-3"><span class="badge bg-secondary">{{ item.category }}</span></td>
+                                                    <td class="text-muted small">{{ item.description }}</td>
+                                                    <td class="text-end pe-3 text-danger fw-bold">₹{{ item.amount|intcomma }}</td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
                                     </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="d-flex justify-content-between">
-                                        <span>📱 Online/UPI:</span>
-                                        <strong>₹{{ row.online|intcomma }}</strong>
-                                    </div>
-                                </div>
-                            </div>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="2" class="text-center py-4 text-muted">No Data</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="2" class="py-5 text-center text-muted">No expenses found.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
+
+        <div class="tab-pane fade" id="consumption">
+            
+            <div class="row g-2 mb-3">
+                <div class="col"><div class="p-3 bg-dark text-white rounded shadow-sm text-center"><small class="fw-bold opacity-75">TOTAL TEA</small><h4 class="fw-bold mb-0 mt-1">{{ cons_totals.total_tea|default:0 }}</h4></div></div>
+                <div class="col"><div class="p-3 bg-secondary text-white rounded shadow-sm text-center"><small class="fw-bold opacity-75">TOTAL NASTA</small><h4 class="fw-bold mb-0 mt-1">{{ cons_totals.total_nasta|default:0 }}</h4></div></div>
+                <div class="col"><div class="p-3 bg-success text-white rounded shadow-sm text-center"><small class="fw-bold opacity-75">TOTAL LUNCH</small><h4 class="fw-bold mb-0 mt-1">{{ cons_totals.total_lunch|default:0 }}</h4></div></div>
+                <div class="col"><div class="p-3 bg-primary text-white rounded shadow-sm text-center"><small class="fw-bold opacity-75">TOTAL DINNER</small><h4 class="fw-bold mb-0 mt-1">{{ cons_totals.total_dinner|default:0 }}</h4></div></div>
+            </div>
+
+            {% if show_tokens %}
+            <h6 class="fw-bold mt-4 mb-2 ps-1 text-dark">Token Summary</h6>
+            <div class="row g-2 mb-4">
+                <div class="col-md-4"><div class="p-3 bg-danger text-white rounded shadow-sm d-flex justify-content-between align-items-center"><div><small class="fw-bold opacity-75 d-block">NORMAL</small><h3 class="fw-bold mb-0">{{ cons_totals.total_normal|default:0 }}</h3></div><i class="bi bi-ticket-fill fs-2 opacity-50"></i></div></div>
+                <div class="col-md-4"><div class="p-3 bg-warning text-dark rounded shadow-sm d-flex justify-content-between align-items-center"><div><small class="fw-bold opacity-75 d-block">SPECIAL</small><h3 class="fw-bold mb-0">{{ cons_totals.total_special|default:0 }}</h3></div><i class="bi bi-star-fill fs-2 opacity-50"></i></div></div>
+                <div class="col-md-4"><div class="p-3 bg-info text-white rounded shadow-sm d-flex justify-content-between align-items-center"><div><small class="fw-bold opacity-75 d-block">GUEST</small><h3 class="fw-bold mb-0">{{ cons_totals.total_guest|default:0 }}</h3></div><i class="bi bi-person-badge-fill fs-2 opacity-50"></i></div></div>
+            </div>
+            {% endif %}
+
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0 fw-bold">Detailed History</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 text-center">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-start ps-4">Date</th>
+                                <th>Tea</th>
+                                <th>Nasta</th>
+                                <th>Lunch</th>
+                                <th>Dinner</th>
+                                {% if show_tokens %}
+                                    <th class="border-start table-danger">Normal</th>
+                                    <th class="table-warning">Special</th>
+                                    <th class="table-info">Guest</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in incomes %}
+                            
+                            {% with total_food=row.tea_qty|add:row.nasta_qty|add:row.lunch_qty|add:row.dinner_qty|add:row.normal_token_qty|add:row.special_token_qty|add:row.guest_token_qty %}
+                            {% if total_food > 0 %}
+                            
+                            <tr>
+                                <td class="text-start ps-4 fw-bold text-muted">{{ row.date|date:"d M, Y" }}</td>
+                                <td class="fw-bold">{{ row.tea_qty|default:"-" }}</td>
+                                <td class="fw-bold">{{ row.nasta_qty|default:"-" }}</td>
+                                <td class="fw-bold">{{ row.lunch_qty|default:"-" }}</td>
+                                <td class="fw-bold">{{ row.dinner_qty|default:"-" }}</td>
+                                
+                                {% if show_tokens %}
+                                    <td class="border-start fw-bold text-danger table-danger">{{ row.normal_token_qty|default:"-" }}</td>
+                                    <td class="fw-bold text-dark table-warning">{{ row.special_token_qty|default:"-" }}</td>
+                                    <td class="fw-bold text-primary table-info">{{ row.guest_token_qty|default:"-" }}</td>
+                                {% endif %}
+                            </tr>
+                            
+                            {% endif %}
+                            {% endwith %}
+                            
+                            {% empty %}
+                            <tr><td colspan="8" class="py-5 text-muted">No consumption data found.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
-
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-danger bg-opacity-10 py-3 border-0">
-            <h5 class="mb-0 fw-bold text-danger">📉 Expense History (Kharcha)</h5>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 40%;">Date <small class="text-muted fw-normal">(Click to view items)</small></th>
-                        <th class="text-end">Total Expense</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in expense_list %}
-                    <tr data-bs-toggle="collapse" data-bs-target="#exp-{{ forloop.counter }}" style="cursor: pointer;" class="fw-bold">
-                        <td class="text-muted">
-                            <i class="bi bi-caret-right-fill me-1"></i> {{ row.date|date:"d M, Y" }}
-                        </td>
-                        <td class="text-end text-danger">- ₹{{ row.total_amount|intcomma }}</td>
-                    </tr>
-
-                    <tr class="collapse bg-light" id="exp-{{ forloop.counter }}">
-                        <td colspan="2" class="p-0">
-                            <table class="table table-sm table-borderless mb-0">
-                                {% for item in row.items %}
-                                <tr class="border-bottom">
-                                    <td class="ps-5 text-muted small">
-                                        {{ item.get_category_display }} 
-                                        {% if item.description %}
-                                            <span class="text-secondary">({{ item.description }})</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-end pe-4 small text-danger">₹{{ item.amount|intcomma }}</td>
-                                </tr>
-                                {% endfor %}
-                            </table>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr><td colspan="2" class="text-center py-4 text-muted">No Data</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-
+<style>
+    .nav-pills .nav-link.active#income-tab { background-color: #198754; } 
+    .nav-pills .nav-link.active#expense-tab { background-color: #dc3545; } 
+    .nav-pills .nav-link.active#consumption-tab { background-color: #0d6efd; } 
+    .nav-link { color: #495057; background-color: #fff; }
+</style>
 {% endblock %}

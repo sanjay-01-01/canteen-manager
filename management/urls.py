@@ -17,4 +17,6 @@ urlpatterns = [
     path('staff/<int:staff_id>/add-payment/', views.add_staff_payment, name='add_staff_payment'),
     path('add-expense/', views.add_expense, name='add_expense'),
     path('add-daily-entry/', views.add_daily_entry, name='add_daily_entry'),
+    path('add-consumption/', views.add_consumption, name='add_consumption'),
+    path('report/consumption/', views.consumption_report, name='consumption_report'),
 ]

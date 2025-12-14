@@ -9,29 +9,38 @@
 
 <div class="container mt-4 mb-5">
 
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold text-dark">📊 Executive Dashboard</h2>
+    <div class="row align-items-center mb-4 g-3">
+        <div class="col-md-5">
+            <h2 class="fw-bold text-dark mb-0">📊 Executive Dashboard</h2>
             <p class="text-muted mb-0">Overview for <span class="fw-bold text-primary">{{ current_month }}</span></p>
         </div>
 
-        <div class="d-flex align-items-center">
-            <a href="{% url 'add_daily_entry' %}" class="btn btn-success shadow-sm rounded-pill px-3 me-2">
-                <i class="bi bi-currency-rupee me-1"></i> Add Income
-            </a>
+        <div class="col-md-4">
+            <form method="GET" class="d-flex bg-white p-1 rounded shadow-sm border">
+                <input type="month" name="filter_date" class="form-control border-0 fw-bold" value="{{ filter_date }}"
+                    required>
+                <button type="submit" class="btn btn-primary fw-bold ms-1 px-4">Filter</button>
+                {% if request.GET.filter_date %}
+                <a href="{% url 'home_dashboard' %}" class="btn btn-light ms-1" title="Reset to Current Month">✖</a>
+                {% endif %}
+            </form>
+        </div>
 
-            <a href="{% url 'add_expense' %}" class="btn btn-danger shadow-sm rounded-pill px-3 me-3">
-                <i class="bi bi-plus-lg me-1"></i> Add Expense
-            </a>
-
-            <div class="d-none d-md-block text-end border-start ps-3">
-                <span class="badge bg-white text-dark border shadow-sm px-3 py-2 rounded-pill mb-1">
-                    <i class="bi bi-shop-window text-primary"></i> {{ total_canteens }} Canteens
-                </span>
-
-                <span class="badge bg-white text-dark border shadow-sm px-3 py-2 ms-1 rounded-pill">
-                    <i class="bi bi-people text-success"></i> {{ total_staff }} Staff
-                </span>
+        <div class="col-md-3 text-end">
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{% url 'add_daily_entry' %}" class="btn btn-success shadow-sm rounded-pill btn-sm px-3">
+                    <i class="bi bi-currency-rupee"></i> Income
+                </a>
+                <a href="{% url 'add_consumption' %}" class="btn btn-primary shadow-sm rounded-pill btn-sm px-3 ms-2">
+                    <i class="bi bi-cup-hot"></i> Entry
+                </a>
+                <a href="{% url 'add_expense' %}" class="btn btn-danger shadow-sm rounded-pill btn-sm px-3">
+                    <i class="bi bi-plus-lg"></i> Expense
+                </a>
+            </div>
+            <div class="mt-2 d-none d-md-block small">
+                <span class="badge bg-light text-dark border me-1">🏢 {{ total_canteens }} Canteens</span>
+                <span class="badge bg-light text-dark border">👥 {{ total_staff }} Staff</span>
             </div>
         </div>
     </div>
