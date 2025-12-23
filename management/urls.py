@@ -43,4 +43,5 @@ urlpatterns = [
     # Staff Management section me:
     path('staff/ex-employees/', views.ex_staff_list, name='ex_staff_list'),
     path('staff/<int:staff_id>/left/', views.mark_staff_left, name='mark_staff_left'),
+    path('staff/<int:staff_id>/rejoin/', views.rejoin_staff, name='rejoin_staff'),
 ]

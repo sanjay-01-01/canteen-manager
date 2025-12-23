@@ -19,6 +19,8 @@ import calendar
 from django.db.models import Count, Q
 from .forms import StaffForm # Upar import check karein
 from django.utils import timezone
+from .models import Staff, StaffLeave
+from datetime import timedelta
 
 
 
@@ -882,3 +884,55 @@ def mark_staff_left(request, staff_id):
         staff.save()
         messages.warning(request, f"{staff.name} has been marked as Ex-Employee.")
     return redirect('staff_profile', staff_id=staff.id)
+
+
+# management/views.py ke sabse niche
+
+@login_required
+def rejoin_staff(request, staff_id):
+    staff = get_object_or_404(Staff, id=staff_id)
+    
+    if request.method == 'POST':
+        # Wapis Active kar do
+        staff.is_active = True
+        # Leaving date hata do (kyunki ab wo wapis aa gaya)
+        staff.leaving_date = None
+        staff.save()
+        messages.success(request, f"Welcome back! {staff.name} has rejoined.")
+        return redirect('staff_profile', staff_id=staff.id)
+    
+    return redirect('staff_list')
+
+
+@login_required
+def rejoin_staff(request, staff_id):
+    staff = get_object_or_404(Staff, id=staff_id)
+    
+    if request.method == 'POST':
+        # 1. GAP PERIOD CALCULATION (Beech ka time)
+        # Agar staff ke paas "Leaving Date" hai, to hum check karenge ki kitne din gayab tha
+        if staff.leaving_date:
+            gap_start_date = staff.leaving_date
+            # Rejoin ki date "AAJ" hai, to gap kal tak tha
+            gap_end_date = timezone.now().date() - timedelta(days=1)
+            
+            # Agar gap valid hai (yani kam se kam 1 din ka gap hai)
+            if gap_end_date >= gap_start_date:
+                # To system me ek "Auto Leave" bana do taaki salary na jude
+                StaffLeave.objects.create(
+                    staff=staff,
+                    start_date=gap_start_date,
+                    end_date=gap_end_date,
+                    reason="Job Left / Resigned Period (Auto-Generated)",
+                    is_paid_leave=False # Paise katenge (Unpaid)
+                )
+
+        # 2. Staff ko wapis ACTIVE karo
+        staff.is_active = True
+        staff.leaving_date = None # Purani leaving date hata do
+        staff.save()
+        
+        messages.success(request, f"Welcome back! {staff.name} has rejoined. Gap period marked as Unpaid Leave.")
+        return redirect('staff_profile', staff_id=staff.id)
+    
+    return redirect('staff_list')

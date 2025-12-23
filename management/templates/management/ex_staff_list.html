@@ -1,27 +1,57 @@
 {% extends 'base.html' %}
+
 {% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold text-danger">🚫 Ex-Staff History</h3>
-        <a href="{% url 'staff_list' %}" class="btn btn-secondary">← Back to Active Staff</a>
+        <div>
+            <h3 class="fw-bold text-danger mb-0">🚫 Ex-Staff History</h3>
+            <p class="text-muted small">List of staff members who left the job</p>
+        </div>
+        <a href="{% url 'staff_list' %}" class="btn btn-secondary shadow-sm">
+            ← Back to Active Staff
+        </a>
     </div>
 
-    <div class="row">
+    <div class="row g-4">
         {% for staff in ex_staff %}
-        <div class="col-md-4 mb-3">
-            <div class="card shadow-sm border-danger">
-                <div class="card-body">
-                    <h5 class="fw-bold">{{ staff.name }}</h5>
-                    <p class="text-muted mb-1">Role: {{ staff.role }}</p>
-                    <span class="badge bg-danger">
-                        Left: {% if staff.leaving_date %}{{ staff.leaving_date }}{% else %}Unknown{% endif %}
-                    </span>
-                    <a href="{% url 'staff_profile' staff.id %}" class="btn btn-sm btn-outline-dark mt-2 d-block">View Ledger</a>
+        <div class="col-md-4 col-sm-6">
+            <div class="card shadow-sm border-danger h-100">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-inline-flex justify-content-center align-items-center fw-bold border border-2 border-danger"
+                             style="width: 60px; height: 60px; font-size: 1.5rem;">
+                            {{ staff.name|slice:":1"|upper }}
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-1">{{ staff.name }}</h5>
+                    <p class="text-muted small mb-2">{{ staff.role }}</p>
+                    
+                    <div class="badge bg-danger bg-opacity-10 text-danger border border-danger mb-4 px-3 py-2">
+                        Left on: {% if staff.leaving_date %}{{ staff.leaving_date|date:"d M, Y" }}{% else %}Unknown{% endif %}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'staff_profile' staff.id %}" class="btn btn-outline-dark shadow-sm">
+                            <i class="fas fa-book me-1"></i> View Ledger
+                        </a>
+
+                        <form action="{% url 'rejoin_staff' staff.id %}" method="POST" onsubmit="return confirm('Confirm: Do you want to Reactivate {{ staff.name }}?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success shadow-sm w-100">
+                                <i class="fas fa-user-check me-1"></i> Rejoin Job
+                            </button>
+                        </form>
+                    </div>
+
                 </div>
             </div>
         </div>
         {% empty %}
-        <div class="col-12 text-center text-muted">No ex-employees found.</div>
+        <div class="col-12 text-center py-5 text-muted">
+            <i class="fas fa-user-slash fa-3x mb-3 opacity-25"></i>
+            <h4>No ex-employees found.</h4>
+        </div>
         {% endfor %}
     </div>
 </div>

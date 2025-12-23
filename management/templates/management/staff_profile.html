@@ -22,17 +22,17 @@
             </a>
 
             {% if staff.is_active %}
-                <form action="{% url 'mark_staff_left' staff.id %}" method="POST"
-                    onsubmit="return confirm('WARNING: Has this staff left the job?');" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-danger shadow-sm">
-                        <i class="fas fa-user-times"></i> Mark as Left
-                    </button>
-                </form>
+            <form action="{% url 'mark_staff_left' staff.id %}" method="POST"
+                onsubmit="return confirm('WARNING: Has this staff left the job?');" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger shadow-sm">
+                    <i class="fas fa-user-times"></i> Mark as Left
+                </button>
+            </form>
             {% else %}
-                <span class="btn btn-secondary disabled">
-                    🚫 Left: {% if staff.leaving_date %}{{ staff.leaving_date|date:"d M, Y" }}{% else %}Unknown{% endif %}
-                </span>
+            <span class="badge bg-secondary p-2 border">
+                🚫 Job Left ({% if staff.leaving_date %}{{ staff.leaving_date|date:"d M, Y" }}{% else %}N/A{% endif %})
+            </span>
             {% endif %}
 
             <a href="{% url 'staff_list' %}" class="btn btn-light border shadow-sm">
@@ -66,15 +66,14 @@
         <div class="card-body p-4 text-center">
             <h6 class="text-muted text-uppercase fw-bold">Current Net Balance</h6>
             {% if overall_balance > 0 %}
-                <h1 class="display-4 fw-bold text-success">+ ₹ {{ overall_balance|intcomma }}</h1>
-                <span class="badge bg-success">Staff Payment Due</span>
-            {% elif overall_balance < 0 %}
-                <h1 class="display-4 fw-bold text-danger">{{ overall_balance|intcomma }}</h1>
+            <h1 class="display-4 fw-bold text-success">+ ₹ {{ overall_balance|intcomma }}</h1>
+            <span class="badge bg-success">Staff Payment Due</span>
+            {% elif overall_balance < 0 %} <h1 class="display-4 fw-bold text-danger">{{ overall_balance|intcomma }}</h1>
                 <span class="badge bg-danger">Advance Recovery Due</span>
-            {% else %}
+                {% else %}
                 <h1 class="display-4 fw-bold text-secondary">₹ 0</h1>
                 <span class="badge bg-secondary">All Clear</span>
-            {% endif %}
+                {% endif %}
         </div>
     </div>
 
@@ -101,28 +100,28 @@
 
                         <td class="text-end">
                             {% if row.credit > 0 %}
-                                <span class="text-success fw-bold">+ {{ row.credit|floatformat:0|intcomma }}</span>
+                            <span class="text-success fw-bold">+ {{ row.credit|floatformat:0|intcomma }}</span>
                             {% else %}
-                                <span class="text-muted">-</span>
+                            <span class="text-muted">-</span>
                             {% endif %}
                         </td>
 
                         <td class="text-end">
                             {% if row.debit > 0 %}
-                                <span class="text-danger fw-bold">- {{ row.debit|floatformat:0|intcomma }}</span>
+                            <span class="text-danger fw-bold">- {{ row.debit|floatformat:0|intcomma }}</span>
                             {% else %}
-                                <span class="text-muted">-</span>
+                            <span class="text-muted">-</span>
                             {% endif %}
                         </td>
 
                         <td class="text-end pe-4 fw-bold">
                             {% if row.balance > 0 %}
-                                <span class="text-success">{{ row.balance|floatformat:0|intcomma }}</span>
-                            {% elif row.balance < 0 %}
-                                <span class="text-danger">{{ row.balance|floatformat:0|intcomma }}</span>
-                            {% else %}
+                            <span class="text-success">{{ row.balance|floatformat:0|intcomma }}</span>
+                            {% elif row.balance < 0 %} <span class="text-danger">{{ row.balance|floatformat:0|intcomma
+                                }}</span>
+                                {% else %}
                                 0
-                            {% endif %}
+                                {% endif %}
                         </td>
                     </tr>
                     {% empty %}
