@@ -27,6 +27,11 @@
                     {{ form.amount }}
                 </div>
 
+                <div class="mb-3">
+                    <label class="form-label">Details / Notes</label>
+                    {{ form.notes }}
+                </div>
+
                 <div class="d-grid gap-2">
                     <button type="submit" class="btn btn-success fw-bold">Save Payment</button>
                     <a href="{% url 'staff_profile' staff.id %}" class="btn btn-light border">Cancel</a>

@@ -24,7 +24,7 @@
         
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover table-striped align-middle mb-0">
+                <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light text-dark">
                         <tr>
                             <th class="py-3 ps-4">Staff Name & Role</th>
@@ -52,7 +52,7 @@
                                         {% endif %}
                                     </div>
                                     <div>
-                                        <a href="{% url 'staff_profile' item.staff.id %}" class="fw-bold text-decoration-none text-dark stretched-link">
+                                        <a href="{% url 'staff_profile' item.staff.id %}" class="fw-bold text-decoration-none text-dark">
                                             {{ item.staff.name }}
                                         </a>
                                         <div class="small text-muted">{{ item.staff.role }}</div>
@@ -61,7 +61,15 @@
                             </td>
 
                             <td><span class="badge bg-light text-dark border">{{ item.canteen_name }}</span></td>
-                            <td>{% if item.staff.joining_date %}{{ item.staff.joining_date|date:"d M, Y" }}{% else %}-{% endif %}</td>
+
+                            <td>
+                                {% if item.staff.joining_date %}
+                                    {{ item.staff.joining_date|date:"d M, Y" }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+
                             <td class="fw-bold">₹ {{ item.monthly_salary|floatformat:0|intcomma }}</td>
                             
                             <td class="text-center">

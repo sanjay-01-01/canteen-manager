@@ -3,15 +3,24 @@ from .models import SalaryPayment
 from .models import SalaryPayment, Expense, Canteen
 from .models import DailyEntry
 from .models import StaffLeave
+from .models import Staff 
+
+
 
 class SalaryPaymentForm(forms.ModelForm):
     class Meta:
         model = SalaryPayment
-        fields = ['amount', 'date', 'payment_type']
+        fields = ['amount', 'date', 'payment_type','notes']
         widgets = {
             'amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Enter Amount'}),
             'date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'payment_type': forms.Select(attrs={'class': 'form-select'}),
+
+            'notes': forms.Textarea(attrs={
+                'class': 'form-control', 
+                'rows': 3, 
+                'placeholder': 'Enter details (Optional)...'
+            }),
         }
 
 
@@ -86,4 +95,41 @@ class StaffLeaveForm(forms.ModelForm):
             'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             # Checkbox ke liye alag widget ki zarurat nahi, Django default checkbox dega
+        }
+
+
+
+# management/forms.py ke sabse niche paste karein
+
+
+
+# management/forms.py
+
+# management/forms.py
+
+class StaffForm(forms.ModelForm):
+    class Meta:
+        model = Staff
+        # Ab saare naam Models wale hain
+        fields = [
+            'canteen', 'name', 'role', 'phone', 'joining_date', 
+            'monthly_salary', 'bank_account_no', 'ifsc_code', 
+            'photo', 'aadhar_card'
+        ]
+        
+        widgets = {
+            'canteen': forms.Select(attrs={'class': 'form-select'}),
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter Full Name'}),
+            'role': forms.Select(attrs={'class': 'form-select'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'}),
+            'joining_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'monthly_salary': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Salary Amount'}),
+            
+            # Bank Details
+            'bank_account_no': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bank Account Number'}),
+            'ifsc_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'IFSC Code'}),
+            
+            # Photos
+            'photo': forms.FileInput(attrs={'class': 'form-control'}),
+            'aadhar_card': forms.FileInput(attrs={'class': 'form-control'}), # <-- Sahi naam
         }

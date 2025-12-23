@@ -44,6 +44,7 @@ class Canteen(models.Model):
 
 class Staff(models.Model):
     ROLES = [
+        ('Manager', 'Manager'),
         ('Cook', 'Cook'),
         ('Helper', 'Helper'),
     ]
@@ -56,7 +57,7 @@ class Staff(models.Model):
         verbose_name="Assigned Canteen"
     )
     name = models.CharField(max_length=100, verbose_name="Staff Name")
-    role = models.CharField(max_length=10, choices=ROLES, default='Helper', verbose_name="Role")
+    role = models.CharField(max_length=50, choices=ROLES, default='Helper', verbose_name="Role")
     phone = models.CharField(max_length=15, default='0000000000', verbose_name="Phone Number")
     joining_date = models.DateField(null=True, blank=True, verbose_name="Joining Date")
     monthly_salary = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Monthly Salary")
@@ -72,6 +73,11 @@ class Staff(models.Model):
     class Meta:
         verbose_name = "Staff Member"
         verbose_name_plural = "Staff"
+
+    # class Staff ke andar, sabse niche:
+    
+    is_active = models.BooleanField(default=True, verbose_name="Is Active Employee")
+    leaving_date = models.DateField(null=True, blank=True, verbose_name="Leaving Date")
 
 
 
@@ -118,9 +124,11 @@ class Expense(models.Model):
         ('Kirana', 'Kirana/Grocery'),
         ('Gas', 'Gas Cylinder/Fuel'),
         ('Vegetables', 'Vegetables (Sabzi)'),
-        ('Milk', 'Milk/Dairy'),              # New
-        ('Auto', 'Auto Rickshaw/Transport'), # New
-        ('Wood', 'Wood/Fuel'),               # New
+        ('Milk', 'Milk/Dairy'),              
+        ('Auto', 'Auto Rickshaw/Transport'), 
+        ('Wood', 'Wood/Fuel'),
+        ('Disposable', 'Disposable'),
+        ('Coka and Namkeen, Biscuit', 'Coka and Namkeen, Biscuit'),             
         ('Other', 'Other Expenses'),
     ]
 
@@ -140,7 +148,7 @@ class Expense(models.Model):
     )
 
     date = models.DateField(verbose_name="Date")
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, verbose_name="Category")
+    category = models.CharField(max_length=150, choices=CATEGORY_CHOICES, verbose_name="Category")
     description = models.CharField(max_length=255, verbose_name="Description")
     amount = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Amount")
     quantity = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name="Quantity") 
@@ -149,7 +157,7 @@ class Expense(models.Model):
     payment_mode = models.CharField(
         max_length=20, 
         choices=PAYMENT_MODE_CHOICES, 
-        default='Cash', 
+        default='Online', 
         verbose_name="Payment Status"
     )
 

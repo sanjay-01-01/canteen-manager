@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-danger">🚫 Ex-Staff History</h3>
+        <a href="{% url 'staff_list' %}" class="btn btn-secondary">← Back to Active Staff</a>
+    </div>
+
+    <div class="row">
+        {% for staff in ex_staff %}
+        <div class="col-md-4 mb-3">
+            <div class="card shadow-sm border-danger">
+                <div class="card-body">
+                    <h5 class="fw-bold">{{ staff.name }}</h5>
+                    <p class="text-muted mb-1">Role: {{ staff.role }}</p>
+                    <span class="badge bg-danger">
+                        Left: {% if staff.leaving_date %}{{ staff.leaving_date }}{% else %}Unknown{% endif %}
+                    </span>
+                    <a href="{% url 'staff_profile' staff.id %}" class="btn btn-sm btn-outline-dark mt-2 d-block">View Ledger</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center text-muted">No ex-employees found.</div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

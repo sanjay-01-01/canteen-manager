@@ -17,6 +17,11 @@ from openpyxl.utils import get_column_letter  # <--- Ye line add karein
 from .forms import StaffLeaveForm
 import calendar
 from django.db.models import Count, Q
+from .forms import StaffForm # Upar import check karein
+from django.utils import timezone
+
+
+
 
 # ==========================================
 # 1. डैशबोर्ड (Home Dashboard)
@@ -350,11 +355,12 @@ def staff_profile_view(request, staff_id):
 # ==========================================
 # 6. स्टाफ लिस्ट व्यू
 # ==========================================
-@login_required
-def staff_list_view(request):
-    all_staff = Staff.objects.all().order_by('name')
-    return render(request, 'management/staff_list.html', {'all_staff': all_staff})
 
+@login_required
+def staff_list(request):
+    # Sirf wahi dikhao jo abhi ACTIVE hain
+    staff_members = Staff.objects.filter(is_active=True).order_by('canteen__name', 'name')
+    return render(request, 'management/staff_list.html', {'all_staff': staff_members})
 
 # ==========================================
 # 7. स्टाफ डिटेल व्यू
@@ -842,3 +848,37 @@ def generate_payroll(request):
         'month_name': calendar.month_name[selected_month]
     }
     return render(request, 'management/payroll_dashboard.html', context)
+
+
+
+# management/views.py ke sabse niche
+
+
+def add_staff(request):
+    if request.method == 'POST':
+        form = StaffForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('staff_list') # Save hone ke baad list par wapis jao
+    else:
+        form = StaffForm()
+    
+    return render(request, 'management/add_staff.html', {'form': form})
+
+# management/views.py ke sabse niche
+@login_required
+def ex_staff_list(request):
+    # Sirf wahi dikhao jo ACTIVE NAHI hain
+    ex_staff = Staff.objects.filter(is_active=False).order_by('-leaving_date')
+    return render(request, 'management/ex_staff_list.html', {'ex_staff': ex_staff})
+
+
+@login_required
+def mark_staff_left(request, staff_id):
+    staff = get_object_or_404(Staff, id=staff_id)
+    if request.method == 'POST':
+        staff.is_active = False
+        staff.leaving_date = timezone.now().date() # Aaj ki tarikh save karega
+        staff.save()
+        messages.warning(request, f"{staff.name} has been marked as Ex-Employee.")
+    return redirect('staff_profile', staff_id=staff.id)

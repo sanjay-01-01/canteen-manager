@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container mt-4 mb-5">
-    
+
     <div class="row align-items-center mb-4">
         <div class="col-md-6">
             <h2 class="fw-bold text-dark mb-0">👥 Staff Directory</h2>
@@ -13,13 +13,17 @@
 
         <div class="col-md-6 text-md-end mt-3 mt-md-0">
             <div class="d-inline-flex gap-2">
-                <a href="{% url 'staff_leave_history' %}" class="btn btn-outline-dark border shadow-sm px-3" title="View History">
+                <a href="{% url 'staff_leave_history' %}" class="btn btn-outline-dark border shadow-sm px-3"
+                    title="View Leave History">
                     <i class="bi bi-clock-history"></i> History
+                </a>
+                
+                <a href="{% url 'add_staff' %}" class="btn btn-primary shadow-sm ms-2">
+                    <i class="fas fa-plus"></i> Add New Staff
                 </a>
                 <a href="{% url 'apply_leave' %}" class="btn btn-warning fw-bold shadow-sm px-4">
                     <i class="bi bi-calendar2-minus-fill me-1"></i> Apply Leave
                 </a>
-                
                 <a href="{% url 'home_dashboard' %}" class="btn btn-light border shadow-sm px-3">
                     <i class="bi bi-arrow-left"></i> Back
                 </a>
@@ -35,22 +39,25 @@
             <a href="{% url 'staff_detail' staff.id %}" class="text-decoration-none">
                 <div class="card shadow-sm border-0 h-100 staff-card position-relative overflow-hidden">
                     <div class="card-body p-3 d-flex align-items-center">
-                        
+
                         <div class="me-3 flex-shrink-0">
                             {% if staff.photo %}
-                            <img src="{{ staff.photo.url }}" class="rounded-circle shadow-sm border border-2 border-white" 
-                                 style="width: 65px; height: 65px; object-fit: cover;">
+                            <img src="{{ staff.photo.url }}"
+                                class="rounded-circle shadow-sm border border-2 border-white"
+                                style="width: 65px; height: 65px; object-fit: cover;">
                             {% else %}
-                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex justify-content-center align-items-center fw-bold border border-2 border-white shadow-sm" 
-                                 style="width: 65px; height: 65px; font-size: 1.5rem;">
+                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex justify-content-center align-items-center fw-bold border border-2 border-white shadow-sm"
+                                style="width: 65px; height: 65px; font-size: 1.5rem;">
                                 {{ staff.name|slice:":1"|upper }}
                             </div>
                             {% endif %}
                         </div>
 
                         <div class="flex-grow-1">
-                            <h5 class="fw-bold text-dark mb-1 text-truncate" style="max-width: 180px;">{{ staff.name }}</h5>
-                            <span class="badge bg-light text-primary border border-primary border-opacity-25 rounded-pill px-2">
+                            <h5 class="fw-bold text-dark mb-1 text-truncate" style="max-width: 180px;">{{ staff.name }}
+                            </h5>
+                            <span
+                                class="badge bg-light text-primary border border-primary border-opacity-25 rounded-pill px-2">
                                 {{ staff.role }}
                             </span>
                         </div>
@@ -71,7 +78,14 @@
             <p class="small text-muted">Add staff from the admin panel to see them here.</p>
         </div>
         {% endfor %}
+    </div> 
+    
+    <div class="d-flex justify-content-center mt-5 pb-5">
+        <a href="{% url 'ex_staff_list' %}" class="btn btn-secondary shadow-sm px-4 py-2 rounded-pill">
+            <i class="fas fa-user-times me-2"></i> View Resigned / Ex-Staff History
+        </a>
     </div>
+
 </div>
 
 <style>
@@ -83,11 +97,10 @@
     /* Hover Effect: Card Upar uthega aur shadow badhegi */
     .staff-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
-        border-color: #0d6efd !important; /* Blue border on hover */
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+        border-color: #0d6efd !important;
     }
 
-    /* Hover karne par Arrow Blue ho jayega */
     .staff-card:hover .bi-chevron-right {
         color: #0d6efd;
         opacity: 1;

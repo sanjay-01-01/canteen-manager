@@ -1,24 +1,41 @@
 {% extends 'base.html' %}
 {% load humanize %}
 
-{% block title %}{{ staff.name }} - Detailed Ledger{% endblock %}
+{% block title %}{{ staff.name }} - Khata Book{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    
+<div class="container mt-4 mb-5">
+
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold text-dark">📒 {{ staff.name }}'s Khata Book</h2>
-            <p class="text-muted mb-0">Role: {{ staff.role }} | Phone: {{ staff.phone }}</p>
+            <h2 class="fw-bold text-dark mb-0">📒 {{ staff.name }}'s Khata Book</h2>
+            <p class="text-muted mb-0">Phone: {{ staff.phone }} | Role: {{ staff.role }}</p>
         </div>
-        <div>
-            <a href="{% url 'add_staff_payment' staff.id %}" class="btn btn-success shadow-sm me-2">
-                <i class="fas fa-hand-holding-usd me-1"></i> Give Advance
+
+        <div class="d-flex gap-2">
+            <a href="{% url 'add_staff_payment' staff.id %}" class="btn btn-success shadow-sm">
+                <i class="fas fa-hand-holding-usd"></i> Give Advance
             </a>
-            <a href="{% url 'print_staff_ledger' staff.id %}" target="_blank" class="btn btn-primary shadow-sm me-2">
-                <i class="fas fa-print me-1"></i> Print
+
+            <a href="{% url 'print_staff_ledger' staff.id %}" target="_blank" class="btn btn-primary shadow-sm">
+                <i class="fas fa-print"></i> Print
             </a>
-            <a href="{% url 'payroll_summary' %}" class="btn btn-outline-secondary shadow-sm">
+
+            {% if staff.is_active %}
+                <form action="{% url 'mark_staff_left' staff.id %}" method="POST"
+                    onsubmit="return confirm('WARNING: Has this staff left the job?');" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger shadow-sm">
+                        <i class="fas fa-user-times"></i> Mark as Left
+                    </button>
+                </form>
+            {% else %}
+                <span class="btn btn-secondary disabled">
+                    🚫 Left: {% if staff.leaving_date %}{{ staff.leaving_date|date:"d M, Y" }}{% else %}Unknown{% endif %}
+                </span>
+            {% endif %}
+
+            <a href="{% url 'staff_list' %}" class="btn btn-light border shadow-sm">
                 ← Back
             </a>
         </div>
@@ -26,21 +43,19 @@
 
     <div class="card shadow-sm border-0 mb-4 bg-light">
         <div class="card-body py-3">
-            <form method="GET" class="row g-3 align-items-end">
-                <div class="col-md-3">
+            <form method="GET" class="row g-2 align-items-end">
+                <div class="col-md-4">
                     <label class="fw-bold small text-muted">Start Date</label>
                     <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="fw-bold small text-muted">End Date</label>
                     <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
                 </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-dark w-100">
-                        <i class="fas fa-filter me-1"></i> Apply Filter
-                    </button>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-dark w-100">Apply Filter</button>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <a href="{% url 'staff_profile' staff.id %}" class="btn btn-outline-danger w-100">Reset</a>
                 </div>
             </form>
@@ -68,7 +83,7 @@
             <h5 class="mb-0 fw-bold">📅 Date-wise Transaction History</h5>
         </div>
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover table-striped align-middle mb-0">
                 <thead class="table-light">
                     <tr>
                         <th class="ps-4">Date</th>
@@ -81,11 +96,8 @@
                 <tbody>
                     {% for row in ledger_data %}
                     <tr>
-                        <td class="ps-4 fw-bold text-muted">{{ row.date|date:"d M, Y" }}</td>
-                        
-                        <td>
-                            <span class="fw-bold text-dark">{{ row.description }}</span>
-                        </td>
+                        <td class="ps-4 fw-bold text-secondary">{{ row.date|date:"d M, Y" }}</td>
+                        <td><span class="fw-bold text-dark">{{ row.description }}</span></td>
 
                         <td class="text-end">
                             {% if row.credit > 0 %}
@@ -116,8 +128,7 @@
                     {% empty %}
                     <tr>
                         <td colspan="5" class="text-center py-5 text-muted">
-                            <i class="fas fa-folder-open fa-2x mb-3 d-block"></i>
-                            No transactions found for this period.
+                            <h5>No transactions found.</h5>
                         </td>
                     </tr>
                     {% endfor %}
